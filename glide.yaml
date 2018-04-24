@@ -1,19 +1,20 @@
-package: github.com/prydonius/mariadb-broker
+package: github.com/philhug/mariadb-broker
 import:
 - package: github.com/golang/glog
+  version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - package: github.com/kubernetes-incubator/service-catalog
-  version: ~0.0.6
   subpackages:
   - contrib/pkg/broker/controller
   - contrib/pkg/broker/server
   - pkg
-  - pkg/brokerapi
 - package: k8s.io/helm
-  version: ~2.4.1
   subpackages:
   - pkg/helm
 - package: google.golang.org/grpc
-  version: v1.2.1
-- package: k8s.io/client-go
-  version: v2.0.0
 - package: github.com/dchest/uniuri
+- package: github.com/go-sql-driver/mysql
+- package: github.com/facebookgo/symwalk
+- package: k8s.io/apimachinery
+  subpackages:
+  - pkg/apis/meta/v1
+- package: github.com/go-openapi/spec
