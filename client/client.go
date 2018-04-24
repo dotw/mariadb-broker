@@ -3,7 +3,11 @@ package client
 import (
 	yaml "gopkg.in/yaml.v2"
 
+	"database/sql"
+	"github.com/golang/glog"
 	"github.com/dchest/uniuri"
+	_ "github.com/go-sql-driver/mysql"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/helm/pkg/helm"
@@ -14,8 +18,65 @@ const (
 	chartPath  = "/mariadb-0.6.1.tgz"
 )
 
+type Config struct {
+	// e.g. "root:root@tcp(mysql:3306)/"
+	Dsn string
+}
+
+type Client struct {
+	config Config
+}
+
+func NewClient(config Config) (Client) {
+	return Client{config: config}
+}
+
+func (c *Client) CreateDB(database string) error {
+	db, err := sql.Open("mysql", c.config.Dsn)
+	if err != nil {
+		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+	}
+	defer db.Close()
+
+	// Open doesn't open a connection. Validate DSN data:
+	err = db.Ping()
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+	}
+
+	// TODO fix SQL injection
+	glog.Infof("CREATE DATABASE `" + database + "`")
+	_, err = db.Exec("CREATE DATABASE IF NOT EXISTS `" + database + "`")
+	if err != nil {
+		panic(err)
+	}
+	return nil
+}
+
+func (c *Client) CreateUser(database, username, password string) error {
+	db, err := sql.Open("mysql", c.config.Dsn)
+	if err != nil {
+		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+	}
+	defer db.Close()
+
+	// Open doesn't open a connection. Validate DSN data:
+	err = db.Ping()
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic in your app
+	}
+
+	glog.Infof("GRANT USER")
+	_, err = db.Exec("GRANT ALL PRIVILEGES ON `" + database + "`.* TO '"+ username + "'@'%' IDENTIFIED by '" + password + "'")
+	if err != nil {
+		panic(err)
+	}
+
+	return nil
+}
+
 // Install creates a new MariaDB chart release
-func Install(releaseName, namespace string) error {
+func (c *Client) Install(releaseName, namespace string) error {
 	vals, err := yaml.Marshal(map[string]interface{}{
 		"mariadbRootPassword": uniuri.New(),
 		"mariadbDatabase":     "dbname",
@@ -32,7 +93,7 @@ func Install(releaseName, namespace string) error {
 }
 
 // Delete deletes a MariaDB chart release
-func Delete(releaseName string) error {
+func (c *Client) Delete(releaseName string) error {
 	helmClient := helm.NewClient(helm.Host(tillerHost))
 	if _, err := helmClient.DeleteRelease(releaseName); err != nil {
 		return err
@@ -41,7 +102,7 @@ func Delete(releaseName string) error {
 }
 
 // GetPassword returns the MariaDB password for a chart release
-func GetPassword(releaseName, namespace string) (string, error) {
+func (c *Client) GetPassword(releaseName, namespace string) (string, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return "", err
@@ -50,7 +111,7 @@ func GetPassword(releaseName, namespace string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	secret, err := clientset.Core().Secrets(namespace).Get(releaseName + "-mariadb")
+	secret, err := clientset.Core().Secrets(namespace).Get(releaseName+"-mariadb", metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}

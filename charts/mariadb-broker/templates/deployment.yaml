@@ -15,6 +15,7 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args: ["/mariadb-broker", "--dbpass", "QyjBCrLmSqmC47Iw"]
         ports:
         - containerPort: {{ .Values.service.internalPort }}
         livenessProbe:

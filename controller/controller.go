@@ -3,12 +3,19 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/kubernetes-incubator/service-catalog/contrib/pkg/broker/controller"
-	"github.com/kubernetes-incubator/service-catalog/pkg/brokerapi"
-	"github.com/prydonius/mariadb-broker/client"
+	"github.com/kubernetes-incubator/service-catalog/contrib/pkg/brokerapi"
+	"github.com/philhug/mariadb-broker/client"
 )
+
+type Config struct {
+	DBUser string
+	DBPass string
+}
 
 type errNoSuchInstance struct {
 	instanceID string
@@ -19,11 +26,15 @@ func (e errNoSuchInstance) Error() string {
 }
 
 type mariadbController struct {
+	config Config
+	client client.Client
 }
 
 // CreateController creates an instance of a User Provided service broker controller.
-func CreateController() controller.Controller {
-	return &mariadbController{}
+func CreateController(config Config) controller.Controller {
+	dsn := fmt.Sprintf("root:%s@tcp(mysql:3306)/", config.DBPass)
+	fmt.Println(dsn)
+	return &mariadbController{config: config, client: client.NewClient(client.Config{Dsn: dsn})}
 }
 
 func (c *mariadbController) Catalog() (*brokerapi.Catalog, error) {
@@ -47,11 +58,8 @@ func (c *mariadbController) Catalog() (*brokerapi.Catalog, error) {
 	}, nil
 }
 
-func (c *mariadbController) CreateServiceInstance(id string, req *brokerapi.CreateServiceInstanceRequest) (*brokerapi.CreateServiceInstanceResponse, error) {
-	if err := client.Install(releaseName(id), id); err != nil {
-		return nil, err
-	}
-	glog.Infof("Created MariaDB Service Instance:\n%v\n", id)
+func (c *mariadbController) CreateServiceInstance(instanceID string, req *brokerapi.CreateServiceInstanceRequest) (*brokerapi.CreateServiceInstanceResponse, error) {
+	glog.Infof("CreateServiceInstance")
 	return &brokerapi.CreateServiceInstanceResponse{}, nil
 }
 
@@ -59,20 +67,41 @@ func (c *mariadbController) GetServiceInstance(id string) (string, error) {
 	return "", errors.New("Unimplemented")
 }
 
-func (c *mariadbController) RemoveServiceInstance(id string) (*brokerapi.DeleteServiceInstanceResponse, error) {
-	if err := client.Delete(releaseName(id)); err != nil {
+func (c *mariadbController) RemoveServiceInstance(instanceID, serviceID, planID string, acceptsIncomplete bool) (*brokerapi.DeleteServiceInstanceResponse, error) {
+/*
+	if err := client.Delete(releaseName(instanceID)); err != nil {
 		return nil, err
 	}
+*/
 	return &brokerapi.DeleteServiceInstanceResponse{}, nil
+}
+
+func RandomString(strlen int) string {
+	rand.Seed(time.Now().UTC().UnixNano())
+	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+	result := make([]byte, strlen)
+	for i := 0; i < strlen; i++ {
+		result[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(result)
 }
 
 func (c *mariadbController) Bind(instanceID, bindingID string, req *brokerapi.BindingRequest) (*brokerapi.CreateServiceBindingResponse, error) {
 	host := releaseName(instanceID) + "-mariadb." + instanceID + ".svc.cluster.local"
 	port := "3306"
-	database := "dbname"
-	username := "root"
-	password, err := client.GetPassword(releaseName(instanceID), instanceID)
+	database := releaseName(bindingID)
+	username := string(bindingID[0:31])
+/*
+	password, err := client.GetPassword(releaseName(bindingID), instanceID)
 	if err != nil {
+		return nil, err
+	}
+*/
+	if err := c.client.CreateDB(database); err != nil {
+		return nil, err
+	}
+	password := RandomString(32)
+	if err := c.client.CreateUser(database, username, password); err != nil {
 		return nil, err
 	}
 	return &brokerapi.CreateServiceBindingResponse{
@@ -82,14 +111,19 @@ func (c *mariadbController) Bind(instanceID, bindingID string, req *brokerapi.Bi
 			"password": password,
 			"host":     host,
 			"port":     port,
-			"database": database,
+			"database_name": database,
 		},
 	}, nil
 }
 
-func (c *mariadbController) UnBind(instanceID string, bindingID string) error {
+func (c *mariadbController) UnBind(instanceID, bindingID, serviceID, planID string) error {
 	// Since we don't persist the binding, there's nothing to do here.
 	return nil
+}
+
+func (c *mariadbController) GetServiceInstanceLastOperation(instanceID, serviceID, planID, operation string) (*brokerapi.LastOperationResponse, error) {
+	// TODO
+	return nil, nil
 }
 
 func releaseName(id string) string {

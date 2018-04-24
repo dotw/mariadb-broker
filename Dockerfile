@@ -1,6 +1,8 @@
 FROM golang:1.8
-COPY . /go/src/github.com/prydonius/mariadb-broker
-WORKDIR /go/src/github.com/prydonius/mariadb-broker
+MAINTAINER Philipp Hug <hug@abacus.ch>
+
+COPY . /go/src/github.com/philhug/mariadb-broker
+WORKDIR /go/src/github.com/philhug/mariadb-broker
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /mariadb-broker .
 
 FROM bitnami/minideb:latest

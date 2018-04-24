@@ -20,7 +20,7 @@ The MariaDB Service Broker can be installed using the Helm chart in this
 repository.
 
 ```
-$ git clone https://github.com/prydonius/mariadb-broker.git
+$ git clone https://github.com/philhug/mariadb-broker.git
 $ cd mariadb-broker
 $ helm install --name mariadb-broker --namespace mariadb-broker charts/mariadb-broker
 ```

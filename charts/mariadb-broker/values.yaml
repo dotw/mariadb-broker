@@ -3,8 +3,8 @@
 # Declare variables to be passed into your templates.
 replicaCount: 1
 image:
-  repository: prydonius/mariadb-broker
-  tag: latest
+  repository: docker-registry.default.svc:5000/pepperninja-dev/mariadb-broker
+  tag: wip
   pullPolicy: Always
 service:
   name: mariadb-broker
