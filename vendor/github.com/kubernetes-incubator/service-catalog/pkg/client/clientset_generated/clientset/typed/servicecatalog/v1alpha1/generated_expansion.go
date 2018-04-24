@@ -16,10 +16,10 @@ limitations under the License.
 
 package v1alpha1
 
-type BindingExpansion interface{}
+type ClusterServiceBrokerExpansion interface{}
 
-type BrokerExpansion interface{}
+type ClusterServiceClassExpansion interface{}
 
-type InstanceExpansion interface{}
+type ClusterServicePlanExpansion interface{}
 
-type ServiceClassExpansion interface{}
+type ServiceBindingExpansion interface{}

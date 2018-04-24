@@ -24,11 +24,14 @@ import (
 	"github.com/golang/glog"
 	"github.com/kubernetes-incubator/service-catalog/pkg"
 	"github.com/kubernetes-incubator/service-catalog/pkg/registry/servicecatalog/server"
+	"github.com/kubernetes-incubator/service-catalog/plugin/pkg/admission/broker/authsarcheck"
+	"github.com/kubernetes-incubator/service-catalog/plugin/pkg/admission/namespace/lifecycle"
+	siclifecycle "github.com/kubernetes-incubator/service-catalog/plugin/pkg/admission/servicebindings/lifecycle"
+	"github.com/kubernetes-incubator/service-catalog/plugin/pkg/admission/serviceplan/changevalidator"
+	"github.com/kubernetes-incubator/service-catalog/plugin/pkg/admission/serviceplan/defaultserviceplan"
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apiserver/pkg/admission"
 	genericserveroptions "k8s.io/apiserver/pkg/server/options"
-	clientset "k8s.io/client-go/kubernetes"
-	restclient "k8s.io/client-go/rest"
 	"k8s.io/kubernetes/pkg/util/interrupt"
 )
 
@@ -45,8 +48,7 @@ const (
 	// GroupName I made this up. Maybe we'll need it.
 	GroupName = "service-catalog.k8s.io"
 
-	storageTypeFlagName    = "storageType"
-	tprGlobalNamespaceName = "tprGlobalNamespace"
+	storageTypeFlagName = "storageType"
 )
 
 // NewCommandServer creates a new cobra command to run our server.
@@ -66,16 +68,18 @@ func NewCommandServer(
 	stopCh := make(chan struct{})
 	opts := &ServiceCatalogServerOptions{
 		GenericServerRunOptions: genericserveroptions.NewServerRunOptions(),
+		AdmissionOptions:        genericserveroptions.NewAdmissionOptions(),
 		SecureServingOptions:    genericserveroptions.NewSecureServingOptions(),
 		AuthenticationOptions:   genericserveroptions.NewDelegatingAuthenticationOptions(),
 		AuthorizationOptions:    genericserveroptions.NewDelegatingAuthorizationOptions(),
-		InsecureServingOptions:  genericserveroptions.NewInsecureServingOptions(),
+		AuditOptions:            genericserveroptions.NewAuditOptions(),
 		EtcdOptions:             NewEtcdOptions(),
-		TPROptions:              NewTPROptions(),
 		StopCh:                  stopCh,
 		StandaloneMode:          standaloneMode(),
 	}
 	opts.addFlags(flags)
+	// register all admission plugins
+	registerAllAdmissionPlugins(opts.AdmissionOptions.Plugins)
 	// Set generated SSL cert path correctly
 	opts.SecureServingOptions.ServerCert.CertDirectory = certDirectory
 
@@ -95,23 +99,8 @@ func NewCommandServer(
 		// Store resources in etcd under our special prefix
 		opts.EtcdOptions.StorageConfig.Prefix = etcdPathPrefix
 	} else {
-		cfg, err := restclient.InClusterConfig()
-		if err != nil {
-			glog.Errorf("Failed to get kube client config (%s)", err)
-			return nil, err
-		}
-		cfg.GroupVersion = &schema.GroupVersion{}
-
-		clIface, err := clientset.NewForConfig(cfg)
-		if err != nil {
-			glog.Errorf("Failed to create clientset Interface (%s)", err)
-			return nil, err
-		}
-
-		glog.Infof("using third party resources for storage")
-		opts.TPROptions.DefaultGlobalNamespace = "servicecatalog"
-		opts.TPROptions.RESTClient = clIface.Core().RESTClient()
-		opts.TPROptions.InstallTPRsFunc = installTPRsToCore(clIface)
+		// This should never happen, catch for potential bugs
+		panic("Unexpected storage type: " + storageType)
 	}
 
 	cmd.Run = func(c *cobra.Command, args []string) {
@@ -125,4 +114,13 @@ func NewCommandServer(
 	}
 
 	return cmd, nil
+}
+
+// registerAllAdmissionPlugins registers all admission plugins
+func registerAllAdmissionPlugins(plugins *admission.Plugins) {
+	lifecycle.Register(plugins)
+	defaultserviceplan.Register(plugins)
+	siclifecycle.Register(plugins)
+	changevalidator.Register(plugins)
+	authsarcheck.Register(plugins)
 }

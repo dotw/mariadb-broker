@@ -20,7 +20,6 @@ import (
 	"regexp"
 
 	apivalidation "k8s.io/apimachinery/pkg/api/validation"
-	"k8s.io/apimachinery/pkg/util/sets"
 	utilvalidation "k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
@@ -30,18 +29,20 @@ import (
 // validateServiceClassName is the validation function for ServiceClass names.
 var validateServiceClassName = apivalidation.NameIsDNSSubdomain
 
-// validateOSBGuid is the validation function for OSB GUIDs.  We generate
-// GUIDs for Instances and Bindings, but for ServiceClass and ServicePlan,
-// they are part of the payload returned from the Broker.
-
-const guidFmt string = "[a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?"
+const guidFmt string = "[a-zA-Z0-9]([-a-zA-Z0-9.]*[a-zA-Z0-9])?"
 const guidMaxLength int = 63
 
+// guidRegexp is a loosened validation for
+// DNS1123 labels that allows uppercase characters.
 var guidRegexp = regexp.MustCompile("^" + guidFmt + "$")
 
-// validateOSBGGUID is a loosened validation for DNS1123 labels that allows
-// uppercase characters.
-func validateOSBGuid(value string) []string {
+// validateExternalID is the validation function for External IDs that
+// have been passed in. External IDs used to be OpenServiceBrokerAPI
+// GUIDs, so we will retain that form until there is another provider
+// that desires a different form.  In the case of the OSBAPI we
+// generate GUIDs for ServiceInstances and ServiceBindings, but for ClusterServiceClass and
+// ServicePlan, they are part of the payload returned from the ClusterServiceBroker.
+func validateExternalID(value string) []string {
 	var errs []string
 	if len(value) > guidMaxLength {
 		errs = append(errs, utilvalidation.MaxLenError(guidMaxLength))
@@ -52,8 +53,12 @@ func validateOSBGuid(value string) []string {
 	return errs
 }
 
-// ValidateServiceClass validates a ServiceClass and returns a list of errors.
-func ValidateServiceClass(serviceclass *sc.ServiceClass) field.ErrorList {
+// ValidateClusterServiceClass validates a ClusterServiceClass and returns a list of errors.
+func ValidateClusterServiceClass(serviceclass *sc.ClusterServiceClass) field.ErrorList {
+	return internalValidateClusterServiceClass(serviceclass)
+}
+
+func internalValidateClusterServiceClass(serviceclass *sc.ClusterServiceClass) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	allErrs = append(allErrs,
@@ -63,75 +68,40 @@ func ValidateServiceClass(serviceclass *sc.ServiceClass) field.ErrorList {
 			validateServiceClassName,
 			field.NewPath("metadata"))...)
 
-	if "" == serviceclass.BrokerName {
-		allErrs = append(allErrs, field.Required(field.NewPath("brokerName"), "brokerName is required"))
+	allErrs = append(allErrs, validateClusterServiceClassSpec(&serviceclass.Spec, field.NewPath("spec"), true)...)
+	return allErrs
+}
+
+func validateClusterServiceClassSpec(spec *sc.ClusterServiceClassSpec, fldPath *field.Path, create bool) field.ErrorList {
+	allErrs := field.ErrorList{}
+
+	if "" == spec.ClusterServiceBrokerName {
+		allErrs = append(allErrs, field.Required(fldPath.Child("clusterServiceBrokerName"), "clusterServiceBrokerName is required"))
 	}
 
-	if "" == serviceclass.OSBGUID {
-		allErrs = append(allErrs, field.Required(field.NewPath("osbGuid"), "osbGuid is required"))
+	if "" == spec.ExternalID {
+		allErrs = append(allErrs, field.Required(fldPath.Child("externalID"), "externalID is required"))
 	}
 
-	for _, msg := range validateOSBGuid(serviceclass.OSBGUID) {
-		allErrs = append(allErrs, field.Invalid(field.NewPath("osbGuid"), serviceclass.OSBGUID, msg))
+	if "" == spec.Description {
+		allErrs = append(allErrs, field.Required(fldPath.Child("description"), "description is required"))
 	}
 
-	planNames := sets.NewString()
-	for i, plan := range serviceclass.Plans {
-		planPath := field.NewPath("plans").Index(i)
-		allErrs = append(allErrs, validateServicePlan(plan, planPath)...)
-
-		if planNames.Has(plan.Name) {
-			allErrs = append(allErrs, field.Invalid(planPath.Child("name"), plan.Name, "each plan must have a unique name"))
-		}
+	for _, msg := range validateServiceClassName(spec.ExternalName, false /* prefix */) {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("externalName"), spec.ExternalName, msg))
+	}
+	for _, msg := range validateExternalID(spec.ExternalID) {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("externalID"), spec.ExternalID, msg))
 	}
 
 	return allErrs
 }
 
-// validateServicePlan validates the fields of a single ServicePlan and
-// returns a list of errors.
-func validateServicePlan(plan sc.ServicePlan, fldPath *field.Path) field.ErrorList {
+// ValidateClusterServiceClassUpdate checks that when changing from an older
+// ClusterServiceClass to a newer ClusterServiceClass is okay.
+func ValidateClusterServiceClassUpdate(new *sc.ClusterServiceClass, old *sc.ClusterServiceClass) field.ErrorList {
 	allErrs := field.ErrorList{}
-
-	for _, msg := range validateServicePlanName(plan.Name) {
-		allErrs = append(allErrs, field.Invalid(fldPath.Child("name"), plan.Name, msg))
-	}
-
-	if "" == plan.OSBGUID {
-		allErrs = append(allErrs, field.Required(fldPath.Child("osbGuid"), "osbGuid is required"))
-	}
-
-	for _, msg := range validateOSBGuid(plan.OSBGUID) {
-		allErrs = append(allErrs, field.Invalid(fldPath.Child("osbGuid"), plan.OSBGUID, msg))
-	}
-
-	return allErrs
-}
-
-const servicePlanNameFmt string = `[-_a-zA-Z0-9]+`
-const servicePlanNameMaxLength int = 63
-
-var servicePlanNameRegexp = regexp.MustCompile("^" + servicePlanNameFmt + "$")
-
-// validateServicePlanName is the validation function for ServicePlan names.
-func validateServicePlanName(value string) []string {
-	var errs []string
-	if len(value) > servicePlanNameMaxLength {
-		errs = append(errs, utilvalidation.MaxLenError(servicePlanNameMaxLength))
-	}
-	if !servicePlanNameRegexp.MatchString(value) {
-		errs = append(errs, utilvalidation.RegexError(servicePlanNameFmt, "plan-name", "plan_name"))
-	}
-
-	return errs
-}
-
-// ValidateServiceClassUpdate checks that when changing from an older
-// ServiceClass to a newer ServiceClass is okay.
-func ValidateServiceClassUpdate(new *sc.ServiceClass, old *sc.ServiceClass) field.ErrorList {
-	allErrs := field.ErrorList{}
-	allErrs = append(allErrs, ValidateServiceClass(new)...)
-	allErrs = append(allErrs, ValidateServiceClass(old)...)
+	allErrs = append(allErrs, internalValidateClusterServiceClass(new)...)
 
 	return allErrs
 }

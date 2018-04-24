@@ -20,6 +20,7 @@ spec:
         release: "{{ .Release.Name }}"
         heritage: "{{ .Release.Service }}"
     spec:
+      serviceAccountName: "{{ .Values.controllerManager.serviceAccount }}"
       containers:
       - name: controller-manager
         image: {{ .Values.controllerManager.image }}
@@ -31,16 +32,31 @@ spec:
           limits:
             cpu: 100m
             memory: 30Mi
+        env:
+        - name: K8S_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         args:
         - --port
         - "8080"
+        {{ if .Values.controllerManager.leaderElection.activated -}}
+        - "--leader-election-namespace=$(K8S_NAMESPACE)"
+        {{- else }}
+        - "--leader-elect=false"
+        {{- end }}
+        {{ if .Values.controllerManager.profiling.disabled -}}
+        - "--profiling=false"
+        {{- end}}
+        {{ if .Values.controllerManager.profiling.contentionProfiling -}}
+        - "--contention-profiling=true"
+        {{- end}}
         {{- if not .Values.useAggregator }}
         - --service-catalog-api-server-url
-        {{- if .Values.apiserver.insecure }}
-        - http://{{ template "fullname" . }}-apiserver
-        {{- else }}
         - https://{{ template "fullname" . }}-apiserver
         {{- end }}
+        {{ if and (.Values.controllerManager.apiserverSkipVerify) (not .Values.useAggregator) -}}
+        - "--service-catalog-insecure-skip-verify=true"
         {{- end }}
         - -v
         - "{{ .Values.controllerManager.verbosity }}"
@@ -49,6 +65,10 @@ spec:
         {{ if .Values.controllerManager.brokerRelistIntervalActivated -}}
         - --broker-relist-interval
         - {{ .Values.controllerManager.brokerRelistInterval }}
+        {{- end }}
+        {{- if .Values.originatingIdentityEnabled }}
+        - --feature-gates
+        - OriginatingIdentity=true
         {{- end }}
         ports:
         - containerPort: 8080

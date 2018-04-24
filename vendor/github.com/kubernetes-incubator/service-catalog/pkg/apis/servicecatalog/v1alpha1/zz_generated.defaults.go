@@ -28,31 +28,45 @@ import (
 // Public to allow building arbitrary schemes.
 // All generated defaulters are covering - they call all nested defaulters.
 func RegisterDefaults(scheme *runtime.Scheme) error {
-	scheme.AddTypeDefaultingFunc(&Binding{}, func(obj interface{}) { SetObjectDefaults_Binding(obj.(*Binding)) })
-	scheme.AddTypeDefaultingFunc(&BindingList{}, func(obj interface{}) { SetObjectDefaults_BindingList(obj.(*BindingList)) })
-	scheme.AddTypeDefaultingFunc(&Instance{}, func(obj interface{}) { SetObjectDefaults_Instance(obj.(*Instance)) })
-	scheme.AddTypeDefaultingFunc(&InstanceList{}, func(obj interface{}) { SetObjectDefaults_InstanceList(obj.(*InstanceList)) })
+	scheme.AddTypeDefaultingFunc(&ClusterServiceBroker{}, func(obj interface{}) { SetObjectDefaults_ClusterServiceBroker(obj.(*ClusterServiceBroker)) })
+	scheme.AddTypeDefaultingFunc(&ClusterServiceBrokerList{}, func(obj interface{}) { SetObjectDefaults_ClusterServiceBrokerList(obj.(*ClusterServiceBrokerList)) })
+	scheme.AddTypeDefaultingFunc(&ServiceBinding{}, func(obj interface{}) { SetObjectDefaults_ServiceBinding(obj.(*ServiceBinding)) })
+	scheme.AddTypeDefaultingFunc(&ServiceBindingList{}, func(obj interface{}) { SetObjectDefaults_ServiceBindingList(obj.(*ServiceBindingList)) })
+	scheme.AddTypeDefaultingFunc(&ServiceInstance{}, func(obj interface{}) { SetObjectDefaults_ServiceInstance(obj.(*ServiceInstance)) })
+	scheme.AddTypeDefaultingFunc(&ServiceInstanceList{}, func(obj interface{}) { SetObjectDefaults_ServiceInstanceList(obj.(*ServiceInstanceList)) })
 	return nil
 }
 
-func SetObjectDefaults_Binding(in *Binding) {
-	SetDefaults_BindingSpec(&in.Spec)
+func SetObjectDefaults_ClusterServiceBroker(in *ClusterServiceBroker) {
+	SetDefaults_ClusterServiceBrokerSpec(&in.Spec)
 }
 
-func SetObjectDefaults_BindingList(in *BindingList) {
+func SetObjectDefaults_ClusterServiceBrokerList(in *ClusterServiceBrokerList) {
 	for i := range in.Items {
 		a := &in.Items[i]
-		SetObjectDefaults_Binding(a)
+		SetObjectDefaults_ClusterServiceBroker(a)
 	}
 }
 
-func SetObjectDefaults_Instance(in *Instance) {
-	SetDefaults_InstanceSpec(&in.Spec)
+func SetObjectDefaults_ServiceBinding(in *ServiceBinding) {
+	SetDefaults_ServiceBinding(in)
+	SetDefaults_ServiceBindingSpec(&in.Spec)
 }
 
-func SetObjectDefaults_InstanceList(in *InstanceList) {
+func SetObjectDefaults_ServiceBindingList(in *ServiceBindingList) {
 	for i := range in.Items {
 		a := &in.Items[i]
-		SetObjectDefaults_Instance(a)
+		SetObjectDefaults_ServiceBinding(a)
+	}
+}
+
+func SetObjectDefaults_ServiceInstance(in *ServiceInstance) {
+	SetDefaults_ServiceInstanceSpec(&in.Spec)
+}
+
+func SetObjectDefaults_ServiceInstanceList(in *ServiceInstanceList) {
+	for i := range in.Items {
+		a := &in.Items[i]
+		SetObjectDefaults_ServiceInstance(a)
 	}
 }

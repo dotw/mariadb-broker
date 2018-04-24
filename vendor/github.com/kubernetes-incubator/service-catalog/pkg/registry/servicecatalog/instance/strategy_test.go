@@ -17,39 +17,39 @@ limitations under the License.
 package instance
 
 import (
+	"fmt"
 	"testing"
 
+	utilfeature "k8s.io/apiserver/pkg/util/feature"
+
 	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
-	checksum "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/checksum/unversioned"
+	scfeatures "github.com/kubernetes-incubator/service-catalog/pkg/features"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apiserver/pkg/authentication/user"
+	genericapirequest "k8s.io/apiserver/pkg/endpoints/request"
 )
 
-func instanceWithFalseReadyCondition() *servicecatalog.Instance {
-	return &servicecatalog.Instance{
-		Spec: servicecatalog.InstanceSpec{
-			ServiceClassName: "test-serviceclass",
-			PlanName:         "test-plan",
+func getTestInstance() *servicecatalog.ServiceInstance {
+	return &servicecatalog.ServiceInstance{
+		ObjectMeta: metav1.ObjectMeta{
+			Generation: 1,
 		},
-		Status: servicecatalog.InstanceStatus{
-			Conditions: []servicecatalog.InstanceCondition{
-				{
-					Type:   servicecatalog.InstanceConditionReady,
-					Status: servicecatalog.ConditionFalse,
-				},
+		Spec: servicecatalog.ServiceInstanceSpec{
+			PlanReference: servicecatalog.PlanReference{
+				ExternalClusterServiceClassName: "test-serviceclass",
+				ExternalClusterServicePlanName:  "test-plan",
+			},
+			ClusterServiceClassRef: &corev1.ObjectReference{},
+			ClusterServicePlanRef:  &corev1.ObjectReference{},
+			UserInfo: &servicecatalog.UserInfo{
+				Username: "some-user",
 			},
 		},
-	}
-}
-
-func instanceWithTrueReadyCondition() *servicecatalog.Instance {
-	return &servicecatalog.Instance{
-		Spec: servicecatalog.InstanceSpec{
-			ServiceClassName: "test-serviceclass",
-			PlanName:         "test-plan",
-		},
-		Status: servicecatalog.InstanceStatus{
-			Conditions: []servicecatalog.InstanceCondition{
+		Status: servicecatalog.ServiceInstanceStatus{
+			Conditions: []servicecatalog.ServiceInstanceCondition{
 				{
-					Type:   servicecatalog.InstanceConditionReady,
+					Type:   servicecatalog.ServiceInstanceConditionReady,
 					Status: servicecatalog.ConditionTrue,
 				},
 			},
@@ -57,56 +57,110 @@ func instanceWithTrueReadyCondition() *servicecatalog.Instance {
 	}
 }
 
-func TestValidateUpdateStatusPrepareForUpdate(t *testing.T) {
+func contextWithUserName(userName string) genericapirequest.Context {
+	ctx := genericapirequest.NewContext()
+	userInfo := &user.DefaultInfo{
+		Name: userName,
+	}
+	return genericapirequest.WithUser(ctx, userInfo)
+}
+
+// TestInstanceUpdate tests that updates to the spec of an Instance.
+func TestInstanceUpdate(t *testing.T) {
 	cases := []struct {
-		name                string
-		old                 *servicecatalog.Instance
-		newer               *servicecatalog.Instance
-		shouldChecksum      bool
-		checksumShouldBeSet bool
+		name                      string
+		older                     *servicecatalog.ServiceInstance
+		newer                     *servicecatalog.ServiceInstance
+		shouldGenerationIncrement bool
+		shouldPlanRefClear        bool
 	}{
 		{
-			name:                "not ready -> not ready",
-			old:                 instanceWithFalseReadyCondition(),
-			newer:               instanceWithFalseReadyCondition(),
-			shouldChecksum:      false,
-			checksumShouldBeSet: false,
+			name:  "no spec change",
+			older: getTestInstance(),
+			newer: getTestInstance(),
 		},
 		{
-			name: "not ready -> not ready, checksum already set",
-			old: func() *servicecatalog.Instance {
-				b := instanceWithFalseReadyCondition()
-				cs := "22081-9471-471"
-				b.Spec.Checksum = &cs
-				return b
+			name: "UpdateRequest increment",
+			older: func() *servicecatalog.ServiceInstance {
+				i := getTestInstance()
+				i.Spec.UpdateRequests = 1
+				return i
 			}(),
-			newer:               instanceWithFalseReadyCondition(),
-			shouldChecksum:      false,
-			checksumShouldBeSet: true,
+			newer: func() *servicecatalog.ServiceInstance {
+				i := getTestInstance()
+				i.Spec.UpdateRequests = 2
+				return i
+			}(),
+			shouldGenerationIncrement: true,
 		},
 		{
-			name:           "not ready -> ready",
-			old:            instanceWithFalseReadyCondition(),
-			newer:          instanceWithTrueReadyCondition(),
-			shouldChecksum: true,
+			name:  "plan change",
+			older: getTestInstance(),
+			newer: func() *servicecatalog.ServiceInstance {
+				i := getTestInstance()
+				i.Spec.ExternalClusterServicePlanName = "new-test-plan"
+				return i
+			}(),
+			shouldGenerationIncrement: true,
+			shouldPlanRefClear:        true,
 		},
 	}
 
 	for _, tc := range cases {
-		strategy := instanceStatusUpdateStrategy
-		strategy.PrepareForUpdate(nil /* api context */, tc.newer, tc.old)
+		instanceRESTStrategies.PrepareForUpdate(nil, tc.newer, tc.older)
 
-		if tc.shouldChecksum {
-			if tc.newer.Spec.Checksum == nil {
-				t.Errorf("%v: Checksum should have been set", tc.name)
-				continue
-			}
-
-			if e, a := checksum.InstanceSpecChecksum(tc.newer.Spec), *tc.newer.Spec.Checksum; e != a {
-				t.Errorf("%v: Checksum was incorrect; expected %v got %v", tc.name, e, a)
-			}
-		} else if tc.checksumShouldBeSet != (tc.newer.Spec.Checksum != nil) {
-			t.Errorf("%v: expected checksum to be nil, but was populated", tc.name)
+		expectedGeneration := tc.older.Generation
+		if tc.shouldGenerationIncrement {
+			expectedGeneration = expectedGeneration + 1
 		}
+		if e, a := expectedGeneration, tc.newer.Generation; e != a {
+			t.Errorf("%v: expected %v, got %v for generation", tc.name, e, a)
+			continue
+		}
+		if tc.shouldPlanRefClear {
+			if tc.newer.Spec.ClusterServicePlanRef != nil {
+				t.Errorf("%v: expected ServicePlanRef to be nil", tc.name)
+			}
+		} else {
+			if tc.newer.Spec.ClusterServicePlanRef == nil {
+				t.Errorf("%v: expected ServicePlanRef to not be nil", tc.name)
+			}
+		}
+	}
+}
+
+// TestInstanceUserInfo tests that the user info is set properly
+// as the user changes for different modifications of the instance.
+func TestInstanceUserInfo(t *testing.T) {
+	// Enable the OriginatingIdentity feature
+	utilfeature.DefaultFeatureGate.Set(fmt.Sprintf("%v=true", scfeatures.OriginatingIdentity))
+	defer utilfeature.DefaultFeatureGate.Set(fmt.Sprintf("%v=false", scfeatures.OriginatingIdentity))
+
+	creatorUserName := "creator"
+	createdInstance := getTestInstance()
+	createContext := contextWithUserName(creatorUserName)
+	instanceRESTStrategies.PrepareForCreate(createContext, createdInstance)
+
+	if e, a := creatorUserName, createdInstance.Spec.UserInfo.Username; e != a {
+		t.Errorf("unexpected user info in created spec: expected %v, got %v", e, a)
+	}
+
+	updaterUserName := "updater"
+	updatedInstance := getTestInstance()
+	updatedInstance.Spec.UpdateRequests = updatedInstance.Spec.UpdateRequests + 1
+	updateContext := contextWithUserName(updaterUserName)
+	instanceRESTStrategies.PrepareForUpdate(updateContext, updatedInstance, createdInstance)
+
+	if e, a := updaterUserName, updatedInstance.Spec.UserInfo.Username; e != a {
+		t.Errorf("unexpected user info in updated spec: expected %v, got %v", e, a)
+	}
+
+	deleterUserName := "deleter"
+	deletedInstance := getTestInstance()
+	deleteContext := contextWithUserName(deleterUserName)
+	instanceRESTStrategies.CheckGracefulDelete(deleteContext, deletedInstance, nil)
+
+	if e, a := deleterUserName, deletedInstance.Spec.UserInfo.Username; e != a {
+		t.Errorf("unexpected user info in deleted spec: expected %v, got %v", e, a)
 	}
 }

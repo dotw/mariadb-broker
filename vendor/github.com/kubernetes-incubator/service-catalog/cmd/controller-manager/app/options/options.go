@@ -16,7 +16,7 @@ limitations under the License.
 
 // The controller is responsible for running control loops that reconcile
 // the state of service catalog API resources with service brokers, service
-// classes, service instances, and service bindings.
+// classes, service instances, and service instance credentials.
 
 package options
 
@@ -24,10 +24,12 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
+	utilfeature "k8s.io/apiserver/pkg/util/feature"
 
 	"github.com/kubernetes-incubator/service-catalog/pkg/apis/componentconfig"
+	osb "github.com/pmorie/go-open-service-broker-client/v2"
 	k8scomponentconfig "k8s.io/kubernetes/pkg/apis/componentconfig"
-	"k8s.io/kubernetes/pkg/client/leaderelection"
+	"k8s.io/kubernetes/pkg/client/leaderelectionconfig"
 )
 
 // ControllerManagerServer is the main context object for the controller
@@ -36,15 +38,21 @@ type ControllerManagerServer struct {
 	componentconfig.ControllerManagerConfiguration
 }
 
-const defaultResyncInterval = 5 * time.Minute
-const defaultBrokerRelistInterval = 24 * time.Hour
-const defaultContentType = "application/json"
-const defaultBindAddress = "0.0.0.0"
-const defaultPort = 10000
-const defaultK8sKubeconfigPath = "./kubeconfig"
-const defaultServiceCatalogKubeconfigPath = "./service-catalog-kubeconfig"
-const defaultOSBAPIContextProfile = true
-const defaultConcurrentSyncs = 5
+const (
+	defaultResyncInterval               = 5 * time.Minute
+	defaultServiceBrokerRelistInterval  = 24 * time.Hour
+	defaultContentType                  = "application/json"
+	defaultBindAddress                  = "0.0.0.0"
+	defaultPort                         = 10000
+	defaultK8sKubeconfigPath            = "./kubeconfig"
+	defaultServiceCatalogKubeconfigPath = "./service-catalog-kubeconfig"
+	defaultOSBAPIContextProfile         = true
+	defaultConcurrentSyncs              = 5
+	defaultLeaderElectionNamespace      = "kube-system"
+	defaultReconciliationRetryDuration  = 7 * 24 * time.Hour
+)
+
+var defaultOSBAPIPreferredVersion = osb.LatestAPIVersion().HeaderValue()
 
 // NewControllerManagerServer creates a new ControllerManagerServer with a
 // default config.
@@ -57,10 +65,15 @@ func NewControllerManagerServer() *ControllerManagerServer {
 			K8sKubeconfigPath:            defaultK8sKubeconfigPath,
 			ServiceCatalogKubeconfigPath: defaultServiceCatalogKubeconfigPath,
 			ResyncInterval:               defaultResyncInterval,
-			BrokerRelistInterval:         defaultBrokerRelistInterval,
+			ServiceBrokerRelistInterval:  defaultServiceBrokerRelistInterval,
 			OSBAPIContextProfile:         defaultOSBAPIContextProfile,
+			OSBAPIPreferredVersion:       defaultOSBAPIPreferredVersion,
 			ConcurrentSyncs:              defaultConcurrentSyncs,
-			LeaderElection:               leaderelection.DefaultLeaderElectionConfiguration(),
+			LeaderElection:               leaderelectionconfig.DefaultLeaderElectionConfiguration(),
+			LeaderElectionNamespace:      defaultLeaderElectionNamespace,
+			EnableProfiling:              true,
+			EnableContentionProfiling:    false,
+			ReconciliationRetryDuration:  defaultReconciliationRetryDuration,
 		},
 	}
 	s.LeaderElection.LeaderElect = true
@@ -76,8 +89,17 @@ func (s *ControllerManagerServer) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&s.K8sKubeconfigPath, "k8s-kubeconfig", "", "Path to k8s core kubeconfig")
 	fs.StringVar(&s.ServiceCatalogAPIServerURL, "service-catalog-api-server-url", "", "The URL for the service-catalog API server")
 	fs.StringVar(&s.ServiceCatalogKubeconfigPath, "service-catalog-kubeconfig", "", "Path to service-catalog kubeconfig")
+	fs.BoolVar(&s.ServiceCatalogInsecureSkipVerify, "service-catalog-insecure-skip-verify", s.ServiceCatalogInsecureSkipVerify, "Skip verification of the TLS certificate for the service-catalog API server")
 	fs.DurationVar(&s.ResyncInterval, "resync-interval", s.ResyncInterval, "The interval on which the controller will resync its informers")
-	fs.DurationVar(&s.BrokerRelistInterval, "broker-relist-interval", s.BrokerRelistInterval, "The interval on which a broker's catalog is relisted after the broker becomes ready")
-	fs.BoolVar(&s.OSBAPIContextProfile, "enable-osb-api-context-profile", s.OSBAPIContextProfile, "Whether or not to send the proposed optional OpenServiceBroker API Context Profile field")
-	leaderelection.BindFlags(&s.LeaderElection, fs)
+	fs.DurationVar(&s.ServiceBrokerRelistInterval, "broker-relist-interval", s.ServiceBrokerRelistInterval, "The interval on which a broker's catalog is relisted after the broker becomes ready")
+	fs.BoolVar(&s.OSBAPIContextProfile, "enable-osb-api-context-profile", s.OSBAPIContextProfile, "This does nothing.")
+	fs.MarkHidden("enable-osb-api-context-profile")
+	fs.StringVar(&s.OSBAPIPreferredVersion, "osb-api-preferred-version", s.OSBAPIPreferredVersion, "The string to send as the version header.")
+	fs.BoolVar(&s.EnableProfiling, "profiling", s.EnableProfiling, "Enable profiling via web interface host:port/debug/pprof/")
+	fs.BoolVar(&s.EnableContentionProfiling, "contention-profiling", s.EnableContentionProfiling, "Enable lock contention profiling, if profiling is enabled")
+	leaderelectionconfig.BindFlags(&s.LeaderElection, fs)
+	fs.StringVar(&s.LeaderElectionNamespace, "leader-election-namespace", s.LeaderElectionNamespace, "Namespace to use for leader election lock")
+	fs.DurationVar(&s.ReconciliationRetryDuration, "reconciliation-retry-duration", s.ReconciliationRetryDuration, "The maximum amount of time to retry reconciliations on a resource before failing")
+
+	utilfeature.DefaultFeatureGate.AddFlag(fs)
 }

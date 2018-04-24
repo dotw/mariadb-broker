@@ -40,7 +40,6 @@ func (g GetRESTOptionsHelper) GetRESTOptions(resource schema.GroupResource) (gen
 		Decorator: generic.StorageDecorator(func(
 			copier runtime.ObjectCopier,
 			config *storagebackend.Config,
-			capacity int,
 			objectType runtime.Object,
 			resourcePrefix string,
 			keyFunc func(obj runtime.Object) (string, error),
@@ -62,7 +61,7 @@ func testRESTOptionsGetter(
 func TestV1Alpha1Storage(t *testing.T) {
 	provider := StorageProvider{
 		DefaultNamespace: "test-default",
-		StorageType:      server.StorageTypeTPR,
+		StorageType:      server.StorageTypeEtcd,
 		RESTClient:       nil,
 	}
 	configSource := serverstorage.NewResourceConfig()
@@ -71,32 +70,32 @@ func TestV1Alpha1Storage(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error getting v1alpha1 storage (%s)", err)
 	}
-	_, brokerStorageExists := storageMap["brokers"]
+	_, brokerStorageExists := storageMap["clusterservicebrokers"]
 	if !brokerStorageExists {
 		t.Fatalf("no broker storage found")
 	}
 	// TODO: do stuff with broker storage
-	_, brokerStatusStorageExists := storageMap["brokers/status"]
+	_, brokerStatusStorageExists := storageMap["clusterservicebrokers/status"]
 	if !brokerStatusStorageExists {
-		t.Fatalf("no broker status storage found")
+		t.Fatalf("no service broker status storage found")
 	}
 	// TODO: do stuff with broker status storage
 
-	_, serviceClassStorageExists := storageMap["serviceclasses"]
+	_, serviceClassStorageExists := storageMap["clusterserviceclasses"]
 	if !serviceClassStorageExists {
 		t.Fatalf("no service class storage found")
 	}
 	// TODO: do stuff with service class storage
 
-	_, instanceStorageExists := storageMap["instances"]
+	_, instanceStorageExists := storageMap["serviceinstances"]
 	if !instanceStorageExists {
-		t.Fatalf("no instance storage found")
+		t.Fatalf("no service instance storage found")
 	}
 	// TODO: do stuff with instance storage
 
-	_, bindingStorageExists := storageMap["bindings"]
+	_, bindingStorageExists := storageMap["servicebindings"]
 	if !bindingStorageExists {
-		t.Fatalf("no binding storage found")
+		t.Fatalf("no service instance credential storage found")
 	}
 	// TODO: do stuff with binding storage
 

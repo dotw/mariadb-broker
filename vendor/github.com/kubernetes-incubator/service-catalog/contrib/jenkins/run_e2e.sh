@@ -24,7 +24,6 @@ while [[ $# -gt 0 ]]; do
   case "${1}" in
     --registry)         REGISTRY="${2:-}"; shift ;;
     --version)          VERSION="${2:-}"; shift ;;
-    --with-tpr)         WITH_TPR=1 ;;
     --cleanup)          CLEANUP=1 ;;
     --create-artifacts) CREATE_ARTIFACTS=1 ;;
     --fix-auth)         FIX_CONFIGMAP=1 ;;
@@ -43,12 +42,7 @@ function cleanup() {
 
   if [[ -n "${CREATE_ARTIFACTS:-}" ]]; then
     echo 'Creating artifacts...'
-    PREFIX="e2e.test_"
-    if [[ -n "${WITH_TPR:-}" ]]; then
-      PREFIX+='tpr-backed'
-    else
-      PREFIX+='etcd-backed'
-    fi
+    PREFIX="e2e.test"
 
     "${ROOT}/contrib/hack/create_artifacts.sh" \
         --prefix "${PREFIX}" --location "${ROOT}" \
@@ -60,15 +54,6 @@ function cleanup() {
   {
     helm delete --purge "${CATALOG_RELEASE}" || true
     rm -f "${SC_KUBECONFIG}"
-
-    # TODO: Hack in order to delete TPRs. Will need to be removed when TPRs can be deleted
-    # by the catalog API server.
-    if [[ -n "${WITH_TPR:-}" ]]; then
-      kubectl delete thirdpartyresources binding.servicecatalog.k8s.io
-      kubectl delete thirdpartyresources instance.servicecatalog.k8s.io
-      kubectl delete thirdpartyresources broker.servicecatalog.k8s.io
-      kubectl delete thirdpartyresources service-class.servicecatalog.k8s.io
-    fi
   } &> /dev/null
 }
 
@@ -82,11 +67,6 @@ echo "Running 'e2e.test'..."
 ARGUMENTS="--registry ${REGISTRY}"
 ARGUMENTS+=" --version ${VERSION}"
 ARGUMENTS+=" --fix-auth"
-ARGUMENTS+=" --service-catalog-config ${SC_KUBECONFIG}"
-ARGUMENTS+=" --release-name ${CATALOG_RELEASE}"
-if [[ -n "${WITH_TPR:-}" ]]; then
-  ARGUMENTS+=" --with-tpr"
-fi
 
 ${ROOT}/contrib/jenkins/install_catalog.sh ${ARGUMENTS} \
   || error_exit "Error installing catalog in cluster."
@@ -94,7 +74,10 @@ ${ROOT}/contrib/jenkins/install_catalog.sh ${ARGUMENTS} \
 make bin/e2e.test \
   || error_exit "Error when making e2e test binary."
 
-KUBECONFIG="${KUBECONFIG}" SERVICECATALOGCONFIG="${SC_KUBECONFIG}" ${ROOT}/bin/e2e.test \
+KUBECONFIG="${KUBECONFIG}" ${ROOT}/bin/e2e.test \
+    -service-catalog-config="${KUBECONFIG}" \
+    -service-catalog-context="service-catalog" \
+    -broker-image="${REGISTRY}user-broker:${VERSION}" \
   || error_exit "Error while running e2e tests."
 
 echo "'e2e.test' completed successfully."

@@ -18,25 +18,40 @@ package v1alpha1
 
 import (
 	"github.com/satori/go.uuid"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"time"
 )
 
 func addDefaultingFuncs(scheme *runtime.Scheme) error {
-	RegisterDefaults(scheme)
-	return scheme.AddDefaultingFuncs(
-		SetDefaults_InstanceSpec,
-		SetDefaults_BindingSpec,
-	)
+	return RegisterDefaults(scheme)
 }
 
-func SetDefaults_InstanceSpec(spec *InstanceSpec) {
-	if spec.OSBGUID == "" {
-		spec.OSBGUID = uuid.NewV4().String()
+func SetDefaults_ClusterServiceBrokerSpec(spec *ClusterServiceBrokerSpec) {
+	if spec.RelistBehavior == "" {
+		spec.RelistBehavior = ServiceBrokerRelistBehaviorDuration
+	}
+
+	if spec.RelistBehavior == ServiceBrokerRelistBehaviorDuration && spec.RelistDuration == nil {
+		spec.RelistDuration = &metav1.Duration{Duration: 15 * time.Minute}
 	}
 }
 
-func SetDefaults_BindingSpec(spec *BindingSpec) {
-	if spec.OSBGUID == "" {
-		spec.OSBGUID = uuid.NewV4().String()
+func SetDefaults_ServiceInstanceSpec(spec *ServiceInstanceSpec) {
+	if spec.ExternalID == "" {
+		spec.ExternalID = uuid.NewV4().String()
+	}
+}
+
+func SetDefaults_ServiceBindingSpec(spec *ServiceBindingSpec) {
+	if spec.ExternalID == "" {
+		spec.ExternalID = uuid.NewV4().String()
+	}
+}
+
+func SetDefaults_ServiceBinding(binding *ServiceBinding) {
+	// If not specified, make the SecretName default to the binding name
+	if binding.Spec.SecretName == "" {
+		binding.Spec.SecretName = binding.Name
 	}
 }

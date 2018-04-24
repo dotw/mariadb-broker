@@ -20,14 +20,16 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
+	"github.com/kubernetes-incubator/service-catalog/pkg/api"
 	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
 	_ "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/install"
 	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/testapi"
 	versioned "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/pkg/api"
 )
 
 func init() {
@@ -68,22 +70,80 @@ func roundTrip(t *testing.T, obj runtime.Object) runtime.Object {
 	return obj3
 }
 
-func TestSetDefaultInstance(t *testing.T) {
-	i := &versioned.Instance{}
-	obj2 := roundTrip(t, runtime.Object(i))
-	i2 := obj2.(*versioned.Instance)
+func TestSetDefaultClusterServiceBroker(t *testing.T) {
+	cases := []struct {
+		name     string
+		broker   *versioned.ClusterServiceBroker
+		behavior versioned.ServiceBrokerRelistBehavior
+		duration *metav1.Duration
+	}{
+		{
+			name:     "neither duration or behavior set",
+			broker:   &versioned.ClusterServiceBroker{},
+			behavior: versioned.ServiceBrokerRelistBehaviorDuration,
+			duration: &metav1.Duration{Duration: 15 * time.Minute},
+		},
+		{
+			name: "behavior set to manual",
+			broker: func() *versioned.ClusterServiceBroker {
+				b := &versioned.ClusterServiceBroker{}
+				b.Spec.RelistBehavior = versioned.ServiceBrokerRelistBehaviorManual
+				return b
+			}(),
+			behavior: versioned.ServiceBrokerRelistBehaviorManual,
+			duration: nil,
+		},
+		{
+			name: "behavior set to duration but no duration provided",
+			broker: func() *versioned.ClusterServiceBroker {
+				b := &versioned.ClusterServiceBroker{}
+				b.Spec.RelistBehavior = versioned.ServiceBrokerRelistBehaviorDuration
+				return b
+			}(),
+			behavior: versioned.ServiceBrokerRelistBehaviorDuration,
+			duration: &metav1.Duration{Duration: 15 * time.Minute},
+		},
+	}
 
-	if i2.Spec.OSBGUID == "" {
-		t.Error("Expected a default OSBGUID, but got none")
+	for _, tc := range cases {
+		o := roundTrip(t, runtime.Object(tc.broker))
+		ab := o.(*versioned.ClusterServiceBroker)
+		actualSpec := ab.Spec
+
+		if tc.behavior != actualSpec.RelistBehavior {
+			t.Errorf(
+				"%v: unexpected default RelistBehavior: expected %v, got %v",
+				tc.name, tc.behavior, actualSpec.RelistBehavior,
+			)
+		}
+
+		if tc.duration == nil && actualSpec.RelistDuration == nil {
+			continue
+		} else if *tc.duration != *actualSpec.RelistDuration {
+			t.Errorf(
+				"%v: unexpected RelistDuration: expected %v, got %v",
+				tc.name, tc.duration, actualSpec.RelistDuration,
+			)
+		}
 	}
 }
 
-func TestSetDefaultBinding(t *testing.T) {
-	b := &versioned.Binding{}
-	obj2 := roundTrip(t, runtime.Object(b))
-	b2 := obj2.(*versioned.Binding)
+func TestSetDefaultServiceInstance(t *testing.T) {
+	i := &versioned.ServiceInstance{}
+	obj2 := roundTrip(t, runtime.Object(i))
+	i2 := obj2.(*versioned.ServiceInstance)
 
-	if b2.Spec.OSBGUID == "" {
-		t.Error("Expected a default OSBGUID, but got none")
+	if i2.Spec.ExternalID == "" {
+		t.Error("Expected a default ExternalID, but got none")
+	}
+}
+
+func TestSetDefaultServiceBinding(t *testing.T) {
+	b := &versioned.ServiceBinding{}
+	obj2 := roundTrip(t, runtime.Object(b))
+	b2 := obj2.(*versioned.ServiceBinding)
+
+	if b2.Spec.ExternalID == "" {
+		t.Error("Expected a default ExternalID, but got none")
 	}
 }

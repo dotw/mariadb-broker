@@ -42,24 +42,28 @@ func Resource(resource string) schema.GroupResource {
 var (
 	// SchemeBuilder needs to be exported as `SchemeBuilder` so
 	// the code-generation can find it.
-	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes, addDefaultingFuncs)
+	SchemeBuilder      = runtime.NewSchemeBuilder(addKnownTypes, addDefaultingFuncs)
+	localSchemeBuilder = &SchemeBuilder
 	// AddToScheme is exposed for API installation
 	AddToScheme = SchemeBuilder.AddToScheme
 )
 
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&Broker{},
-		&BrokerList{},
-		&ServiceClass{},
-		&ServiceClassList{},
-		&Instance{},
-		&InstanceList{},
-		&Binding{},
-		&BindingList{},
+		&ClusterServiceBroker{},
+		&ClusterServiceBrokerList{},
+		&ClusterServiceClass{},
+		&ClusterServiceClassList{},
+		&ClusterServicePlan{},
+		&ClusterServicePlanList{},
+		&ServiceInstance{},
+		&ServiceInstanceList{},
+		&ServiceBinding{},
+		&ServiceBindingList{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	scheme.AddKnownTypes(schema.GroupVersion{Version: "v1"}, &metav1.Status{})
-
+	scheme.AddFieldLabelConversionFunc("servicecatalog.k8s.io/v1alpha1", "ClusterServiceClass", ClusterServiceClassFieldLabelConversionFunc)
+	scheme.AddFieldLabelConversionFunc("servicecatalog.k8s.io/v1alpha1", "ClusterServicePlan", ClusterServicePlanFieldLabelConversionFunc)
 	return nil
 }

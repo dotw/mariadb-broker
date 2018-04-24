@@ -22,325 +22,560 @@ package v1alpha1
 
 import (
 	servicecatalog "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
+	v1 "k8s.io/api/core/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
-	v1 "k8s.io/client-go/pkg/api/v1"
 	unsafe "unsafe"
 )
 
 func init() {
-	SchemeBuilder.Register(RegisterConversions)
+	localSchemeBuilder.Register(RegisterConversions)
 }
 
 // RegisterConversions adds conversion functions to the given scheme.
 // Public to allow building arbitrary schemes.
 func RegisterConversions(scheme *runtime.Scheme) error {
 	return scheme.AddGeneratedConversionFuncs(
-		Convert_v1alpha1_Binding_To_servicecatalog_Binding,
-		Convert_servicecatalog_Binding_To_v1alpha1_Binding,
-		Convert_v1alpha1_BindingCondition_To_servicecatalog_BindingCondition,
-		Convert_servicecatalog_BindingCondition_To_v1alpha1_BindingCondition,
-		Convert_v1alpha1_BindingList_To_servicecatalog_BindingList,
-		Convert_servicecatalog_BindingList_To_v1alpha1_BindingList,
-		Convert_v1alpha1_BindingSpec_To_servicecatalog_BindingSpec,
-		Convert_servicecatalog_BindingSpec_To_v1alpha1_BindingSpec,
-		Convert_v1alpha1_BindingStatus_To_servicecatalog_BindingStatus,
-		Convert_servicecatalog_BindingStatus_To_v1alpha1_BindingStatus,
-		Convert_v1alpha1_Broker_To_servicecatalog_Broker,
-		Convert_servicecatalog_Broker_To_v1alpha1_Broker,
-		Convert_v1alpha1_BrokerCondition_To_servicecatalog_BrokerCondition,
-		Convert_servicecatalog_BrokerCondition_To_v1alpha1_BrokerCondition,
-		Convert_v1alpha1_BrokerList_To_servicecatalog_BrokerList,
-		Convert_servicecatalog_BrokerList_To_v1alpha1_BrokerList,
-		Convert_v1alpha1_BrokerSpec_To_servicecatalog_BrokerSpec,
-		Convert_servicecatalog_BrokerSpec_To_v1alpha1_BrokerSpec,
-		Convert_v1alpha1_BrokerStatus_To_servicecatalog_BrokerStatus,
-		Convert_servicecatalog_BrokerStatus_To_v1alpha1_BrokerStatus,
-		Convert_v1alpha1_Instance_To_servicecatalog_Instance,
-		Convert_servicecatalog_Instance_To_v1alpha1_Instance,
-		Convert_v1alpha1_InstanceCondition_To_servicecatalog_InstanceCondition,
-		Convert_servicecatalog_InstanceCondition_To_v1alpha1_InstanceCondition,
-		Convert_v1alpha1_InstanceList_To_servicecatalog_InstanceList,
-		Convert_servicecatalog_InstanceList_To_v1alpha1_InstanceList,
-		Convert_v1alpha1_InstanceSpec_To_servicecatalog_InstanceSpec,
-		Convert_servicecatalog_InstanceSpec_To_v1alpha1_InstanceSpec,
-		Convert_v1alpha1_InstanceStatus_To_servicecatalog_InstanceStatus,
-		Convert_servicecatalog_InstanceStatus_To_v1alpha1_InstanceStatus,
-		Convert_v1alpha1_ServiceClass_To_servicecatalog_ServiceClass,
-		Convert_servicecatalog_ServiceClass_To_v1alpha1_ServiceClass,
-		Convert_v1alpha1_ServiceClassList_To_servicecatalog_ServiceClassList,
-		Convert_servicecatalog_ServiceClassList_To_v1alpha1_ServiceClassList,
-		Convert_v1alpha1_ServicePlan_To_servicecatalog_ServicePlan,
-		Convert_servicecatalog_ServicePlan_To_v1alpha1_ServicePlan,
+		Convert_v1alpha1_BasicAuthConfig_To_servicecatalog_BasicAuthConfig,
+		Convert_servicecatalog_BasicAuthConfig_To_v1alpha1_BasicAuthConfig,
+		Convert_v1alpha1_BearerTokenAuthConfig_To_servicecatalog_BearerTokenAuthConfig,
+		Convert_servicecatalog_BearerTokenAuthConfig_To_v1alpha1_BearerTokenAuthConfig,
+		Convert_v1alpha1_ClusterServiceBroker_To_servicecatalog_ClusterServiceBroker,
+		Convert_servicecatalog_ClusterServiceBroker_To_v1alpha1_ClusterServiceBroker,
+		Convert_v1alpha1_ClusterServiceBrokerList_To_servicecatalog_ClusterServiceBrokerList,
+		Convert_servicecatalog_ClusterServiceBrokerList_To_v1alpha1_ClusterServiceBrokerList,
+		Convert_v1alpha1_ClusterServiceBrokerSpec_To_servicecatalog_ClusterServiceBrokerSpec,
+		Convert_servicecatalog_ClusterServiceBrokerSpec_To_v1alpha1_ClusterServiceBrokerSpec,
+		Convert_v1alpha1_ClusterServiceBrokerStatus_To_servicecatalog_ClusterServiceBrokerStatus,
+		Convert_servicecatalog_ClusterServiceBrokerStatus_To_v1alpha1_ClusterServiceBrokerStatus,
+		Convert_v1alpha1_ClusterServiceClass_To_servicecatalog_ClusterServiceClass,
+		Convert_servicecatalog_ClusterServiceClass_To_v1alpha1_ClusterServiceClass,
+		Convert_v1alpha1_ClusterServiceClassList_To_servicecatalog_ClusterServiceClassList,
+		Convert_servicecatalog_ClusterServiceClassList_To_v1alpha1_ClusterServiceClassList,
+		Convert_v1alpha1_ClusterServiceClassSpec_To_servicecatalog_ClusterServiceClassSpec,
+		Convert_servicecatalog_ClusterServiceClassSpec_To_v1alpha1_ClusterServiceClassSpec,
+		Convert_v1alpha1_ClusterServiceClassStatus_To_servicecatalog_ClusterServiceClassStatus,
+		Convert_servicecatalog_ClusterServiceClassStatus_To_v1alpha1_ClusterServiceClassStatus,
+		Convert_v1alpha1_ClusterServicePlan_To_servicecatalog_ClusterServicePlan,
+		Convert_servicecatalog_ClusterServicePlan_To_v1alpha1_ClusterServicePlan,
+		Convert_v1alpha1_ClusterServicePlanList_To_servicecatalog_ClusterServicePlanList,
+		Convert_servicecatalog_ClusterServicePlanList_To_v1alpha1_ClusterServicePlanList,
+		Convert_v1alpha1_ClusterServicePlanSpec_To_servicecatalog_ClusterServicePlanSpec,
+		Convert_servicecatalog_ClusterServicePlanSpec_To_v1alpha1_ClusterServicePlanSpec,
+		Convert_v1alpha1_ClusterServicePlanStatus_To_servicecatalog_ClusterServicePlanStatus,
+		Convert_servicecatalog_ClusterServicePlanStatus_To_v1alpha1_ClusterServicePlanStatus,
+		Convert_v1alpha1_ParametersFromSource_To_servicecatalog_ParametersFromSource,
+		Convert_servicecatalog_ParametersFromSource_To_v1alpha1_ParametersFromSource,
+		Convert_v1alpha1_PlanReference_To_servicecatalog_PlanReference,
+		Convert_servicecatalog_PlanReference_To_v1alpha1_PlanReference,
+		Convert_v1alpha1_SecretKeyReference_To_servicecatalog_SecretKeyReference,
+		Convert_servicecatalog_SecretKeyReference_To_v1alpha1_SecretKeyReference,
+		Convert_v1alpha1_ServiceBinding_To_servicecatalog_ServiceBinding,
+		Convert_servicecatalog_ServiceBinding_To_v1alpha1_ServiceBinding,
+		Convert_v1alpha1_ServiceBindingCondition_To_servicecatalog_ServiceBindingCondition,
+		Convert_servicecatalog_ServiceBindingCondition_To_v1alpha1_ServiceBindingCondition,
+		Convert_v1alpha1_ServiceBindingList_To_servicecatalog_ServiceBindingList,
+		Convert_servicecatalog_ServiceBindingList_To_v1alpha1_ServiceBindingList,
+		Convert_v1alpha1_ServiceBindingPropertiesState_To_servicecatalog_ServiceBindingPropertiesState,
+		Convert_servicecatalog_ServiceBindingPropertiesState_To_v1alpha1_ServiceBindingPropertiesState,
+		Convert_v1alpha1_ServiceBindingSpec_To_servicecatalog_ServiceBindingSpec,
+		Convert_servicecatalog_ServiceBindingSpec_To_v1alpha1_ServiceBindingSpec,
+		Convert_v1alpha1_ServiceBindingStatus_To_servicecatalog_ServiceBindingStatus,
+		Convert_servicecatalog_ServiceBindingStatus_To_v1alpha1_ServiceBindingStatus,
+		Convert_v1alpha1_ServiceBrokerAuthInfo_To_servicecatalog_ServiceBrokerAuthInfo,
+		Convert_servicecatalog_ServiceBrokerAuthInfo_To_v1alpha1_ServiceBrokerAuthInfo,
+		Convert_v1alpha1_ServiceBrokerCondition_To_servicecatalog_ServiceBrokerCondition,
+		Convert_servicecatalog_ServiceBrokerCondition_To_v1alpha1_ServiceBrokerCondition,
+		Convert_v1alpha1_ServiceInstance_To_servicecatalog_ServiceInstance,
+		Convert_servicecatalog_ServiceInstance_To_v1alpha1_ServiceInstance,
+		Convert_v1alpha1_ServiceInstanceCondition_To_servicecatalog_ServiceInstanceCondition,
+		Convert_servicecatalog_ServiceInstanceCondition_To_v1alpha1_ServiceInstanceCondition,
+		Convert_v1alpha1_ServiceInstanceList_To_servicecatalog_ServiceInstanceList,
+		Convert_servicecatalog_ServiceInstanceList_To_v1alpha1_ServiceInstanceList,
+		Convert_v1alpha1_ServiceInstancePropertiesState_To_servicecatalog_ServiceInstancePropertiesState,
+		Convert_servicecatalog_ServiceInstancePropertiesState_To_v1alpha1_ServiceInstancePropertiesState,
+		Convert_v1alpha1_ServiceInstanceSpec_To_servicecatalog_ServiceInstanceSpec,
+		Convert_servicecatalog_ServiceInstanceSpec_To_v1alpha1_ServiceInstanceSpec,
+		Convert_v1alpha1_ServiceInstanceStatus_To_servicecatalog_ServiceInstanceStatus,
+		Convert_servicecatalog_ServiceInstanceStatus_To_v1alpha1_ServiceInstanceStatus,
+		Convert_v1alpha1_UserInfo_To_servicecatalog_UserInfo,
+		Convert_servicecatalog_UserInfo_To_v1alpha1_UserInfo,
 	)
 }
 
-func autoConvert_v1alpha1_Binding_To_servicecatalog_Binding(in *Binding, out *servicecatalog.Binding, s conversion.Scope) error {
+func autoConvert_v1alpha1_BasicAuthConfig_To_servicecatalog_BasicAuthConfig(in *BasicAuthConfig, out *servicecatalog.BasicAuthConfig, s conversion.Scope) error {
+	out.SecretRef = (*v1.ObjectReference)(unsafe.Pointer(in.SecretRef))
+	return nil
+}
+
+// Convert_v1alpha1_BasicAuthConfig_To_servicecatalog_BasicAuthConfig is an autogenerated conversion function.
+func Convert_v1alpha1_BasicAuthConfig_To_servicecatalog_BasicAuthConfig(in *BasicAuthConfig, out *servicecatalog.BasicAuthConfig, s conversion.Scope) error {
+	return autoConvert_v1alpha1_BasicAuthConfig_To_servicecatalog_BasicAuthConfig(in, out, s)
+}
+
+func autoConvert_servicecatalog_BasicAuthConfig_To_v1alpha1_BasicAuthConfig(in *servicecatalog.BasicAuthConfig, out *BasicAuthConfig, s conversion.Scope) error {
+	out.SecretRef = (*v1.ObjectReference)(unsafe.Pointer(in.SecretRef))
+	return nil
+}
+
+// Convert_servicecatalog_BasicAuthConfig_To_v1alpha1_BasicAuthConfig is an autogenerated conversion function.
+func Convert_servicecatalog_BasicAuthConfig_To_v1alpha1_BasicAuthConfig(in *servicecatalog.BasicAuthConfig, out *BasicAuthConfig, s conversion.Scope) error {
+	return autoConvert_servicecatalog_BasicAuthConfig_To_v1alpha1_BasicAuthConfig(in, out, s)
+}
+
+func autoConvert_v1alpha1_BearerTokenAuthConfig_To_servicecatalog_BearerTokenAuthConfig(in *BearerTokenAuthConfig, out *servicecatalog.BearerTokenAuthConfig, s conversion.Scope) error {
+	out.SecretRef = (*v1.ObjectReference)(unsafe.Pointer(in.SecretRef))
+	return nil
+}
+
+// Convert_v1alpha1_BearerTokenAuthConfig_To_servicecatalog_BearerTokenAuthConfig is an autogenerated conversion function.
+func Convert_v1alpha1_BearerTokenAuthConfig_To_servicecatalog_BearerTokenAuthConfig(in *BearerTokenAuthConfig, out *servicecatalog.BearerTokenAuthConfig, s conversion.Scope) error {
+	return autoConvert_v1alpha1_BearerTokenAuthConfig_To_servicecatalog_BearerTokenAuthConfig(in, out, s)
+}
+
+func autoConvert_servicecatalog_BearerTokenAuthConfig_To_v1alpha1_BearerTokenAuthConfig(in *servicecatalog.BearerTokenAuthConfig, out *BearerTokenAuthConfig, s conversion.Scope) error {
+	out.SecretRef = (*v1.ObjectReference)(unsafe.Pointer(in.SecretRef))
+	return nil
+}
+
+// Convert_servicecatalog_BearerTokenAuthConfig_To_v1alpha1_BearerTokenAuthConfig is an autogenerated conversion function.
+func Convert_servicecatalog_BearerTokenAuthConfig_To_v1alpha1_BearerTokenAuthConfig(in *servicecatalog.BearerTokenAuthConfig, out *BearerTokenAuthConfig, s conversion.Scope) error {
+	return autoConvert_servicecatalog_BearerTokenAuthConfig_To_v1alpha1_BearerTokenAuthConfig(in, out, s)
+}
+
+func autoConvert_v1alpha1_ClusterServiceBroker_To_servicecatalog_ClusterServiceBroker(in *ClusterServiceBroker, out *servicecatalog.ClusterServiceBroker, s conversion.Scope) error {
 	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v1alpha1_BindingSpec_To_servicecatalog_BindingSpec(&in.Spec, &out.Spec, s); err != nil {
+	if err := Convert_v1alpha1_ClusterServiceBrokerSpec_To_servicecatalog_ClusterServiceBrokerSpec(&in.Spec, &out.Spec, s); err != nil {
 		return err
 	}
-	if err := Convert_v1alpha1_BindingStatus_To_servicecatalog_BindingStatus(&in.Status, &out.Status, s); err != nil {
+	if err := Convert_v1alpha1_ClusterServiceBrokerStatus_To_servicecatalog_ClusterServiceBrokerStatus(&in.Status, &out.Status, s); err != nil {
 		return err
 	}
 	return nil
 }
 
-func Convert_v1alpha1_Binding_To_servicecatalog_Binding(in *Binding, out *servicecatalog.Binding, s conversion.Scope) error {
-	return autoConvert_v1alpha1_Binding_To_servicecatalog_Binding(in, out, s)
+// Convert_v1alpha1_ClusterServiceBroker_To_servicecatalog_ClusterServiceBroker is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServiceBroker_To_servicecatalog_ClusterServiceBroker(in *ClusterServiceBroker, out *servicecatalog.ClusterServiceBroker, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServiceBroker_To_servicecatalog_ClusterServiceBroker(in, out, s)
 }
 
-func autoConvert_servicecatalog_Binding_To_v1alpha1_Binding(in *servicecatalog.Binding, out *Binding, s conversion.Scope) error {
+func autoConvert_servicecatalog_ClusterServiceBroker_To_v1alpha1_ClusterServiceBroker(in *servicecatalog.ClusterServiceBroker, out *ClusterServiceBroker, s conversion.Scope) error {
 	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_servicecatalog_BindingSpec_To_v1alpha1_BindingSpec(&in.Spec, &out.Spec, s); err != nil {
+	if err := Convert_servicecatalog_ClusterServiceBrokerSpec_To_v1alpha1_ClusterServiceBrokerSpec(&in.Spec, &out.Spec, s); err != nil {
 		return err
 	}
-	if err := Convert_servicecatalog_BindingStatus_To_v1alpha1_BindingStatus(&in.Status, &out.Status, s); err != nil {
+	if err := Convert_servicecatalog_ClusterServiceBrokerStatus_To_v1alpha1_ClusterServiceBrokerStatus(&in.Status, &out.Status, s); err != nil {
 		return err
 	}
 	return nil
 }
 
-func Convert_servicecatalog_Binding_To_v1alpha1_Binding(in *servicecatalog.Binding, out *Binding, s conversion.Scope) error {
-	return autoConvert_servicecatalog_Binding_To_v1alpha1_Binding(in, out, s)
+// Convert_servicecatalog_ClusterServiceBroker_To_v1alpha1_ClusterServiceBroker is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServiceBroker_To_v1alpha1_ClusterServiceBroker(in *servicecatalog.ClusterServiceBroker, out *ClusterServiceBroker, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServiceBroker_To_v1alpha1_ClusterServiceBroker(in, out, s)
 }
 
-func autoConvert_v1alpha1_BindingCondition_To_servicecatalog_BindingCondition(in *BindingCondition, out *servicecatalog.BindingCondition, s conversion.Scope) error {
-	out.Type = servicecatalog.BindingConditionType(in.Type)
-	out.Status = servicecatalog.ConditionStatus(in.Status)
-	out.LastTransitionTime = in.LastTransitionTime
-	out.Reason = in.Reason
-	out.Message = in.Message
-	return nil
-}
-
-func Convert_v1alpha1_BindingCondition_To_servicecatalog_BindingCondition(in *BindingCondition, out *servicecatalog.BindingCondition, s conversion.Scope) error {
-	return autoConvert_v1alpha1_BindingCondition_To_servicecatalog_BindingCondition(in, out, s)
-}
-
-func autoConvert_servicecatalog_BindingCondition_To_v1alpha1_BindingCondition(in *servicecatalog.BindingCondition, out *BindingCondition, s conversion.Scope) error {
-	out.Type = BindingConditionType(in.Type)
-	out.Status = ConditionStatus(in.Status)
-	out.LastTransitionTime = in.LastTransitionTime
-	out.Reason = in.Reason
-	out.Message = in.Message
-	return nil
-}
-
-func Convert_servicecatalog_BindingCondition_To_v1alpha1_BindingCondition(in *servicecatalog.BindingCondition, out *BindingCondition, s conversion.Scope) error {
-	return autoConvert_servicecatalog_BindingCondition_To_v1alpha1_BindingCondition(in, out, s)
-}
-
-func autoConvert_v1alpha1_BindingList_To_servicecatalog_BindingList(in *BindingList, out *servicecatalog.BindingList, s conversion.Scope) error {
+func autoConvert_v1alpha1_ClusterServiceBrokerList_To_servicecatalog_ClusterServiceBrokerList(in *ClusterServiceBrokerList, out *servicecatalog.ClusterServiceBrokerList, s conversion.Scope) error {
 	out.ListMeta = in.ListMeta
-	out.Items = *(*[]servicecatalog.Binding)(unsafe.Pointer(&in.Items))
+	out.Items = *(*[]servicecatalog.ClusterServiceBroker)(unsafe.Pointer(&in.Items))
 	return nil
 }
 
-func Convert_v1alpha1_BindingList_To_servicecatalog_BindingList(in *BindingList, out *servicecatalog.BindingList, s conversion.Scope) error {
-	return autoConvert_v1alpha1_BindingList_To_servicecatalog_BindingList(in, out, s)
+// Convert_v1alpha1_ClusterServiceBrokerList_To_servicecatalog_ClusterServiceBrokerList is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServiceBrokerList_To_servicecatalog_ClusterServiceBrokerList(in *ClusterServiceBrokerList, out *servicecatalog.ClusterServiceBrokerList, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServiceBrokerList_To_servicecatalog_ClusterServiceBrokerList(in, out, s)
 }
 
-func autoConvert_servicecatalog_BindingList_To_v1alpha1_BindingList(in *servicecatalog.BindingList, out *BindingList, s conversion.Scope) error {
+func autoConvert_servicecatalog_ClusterServiceBrokerList_To_v1alpha1_ClusterServiceBrokerList(in *servicecatalog.ClusterServiceBrokerList, out *ClusterServiceBrokerList, s conversion.Scope) error {
 	out.ListMeta = in.ListMeta
-	out.Items = *(*[]Binding)(unsafe.Pointer(&in.Items))
+	out.Items = *(*[]ClusterServiceBroker)(unsafe.Pointer(&in.Items))
 	return nil
 }
 
-func Convert_servicecatalog_BindingList_To_v1alpha1_BindingList(in *servicecatalog.BindingList, out *BindingList, s conversion.Scope) error {
-	return autoConvert_servicecatalog_BindingList_To_v1alpha1_BindingList(in, out, s)
+// Convert_servicecatalog_ClusterServiceBrokerList_To_v1alpha1_ClusterServiceBrokerList is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServiceBrokerList_To_v1alpha1_ClusterServiceBrokerList(in *servicecatalog.ClusterServiceBrokerList, out *ClusterServiceBrokerList, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServiceBrokerList_To_v1alpha1_ClusterServiceBrokerList(in, out, s)
 }
 
-func autoConvert_v1alpha1_BindingSpec_To_servicecatalog_BindingSpec(in *BindingSpec, out *servicecatalog.BindingSpec, s conversion.Scope) error {
-	out.InstanceRef = in.InstanceRef
-	out.Parameters = (*runtime.RawExtension)(unsafe.Pointer(in.Parameters))
-	out.SecretName = in.SecretName
-	out.OSBGUID = in.OSBGUID
-	out.Checksum = (*string)(unsafe.Pointer(in.Checksum))
-	return nil
-}
-
-func Convert_v1alpha1_BindingSpec_To_servicecatalog_BindingSpec(in *BindingSpec, out *servicecatalog.BindingSpec, s conversion.Scope) error {
-	return autoConvert_v1alpha1_BindingSpec_To_servicecatalog_BindingSpec(in, out, s)
-}
-
-func autoConvert_servicecatalog_BindingSpec_To_v1alpha1_BindingSpec(in *servicecatalog.BindingSpec, out *BindingSpec, s conversion.Scope) error {
-	out.InstanceRef = in.InstanceRef
-	out.Parameters = (*runtime.RawExtension)(unsafe.Pointer(in.Parameters))
-	out.SecretName = in.SecretName
-	out.OSBGUID = in.OSBGUID
-	out.Checksum = (*string)(unsafe.Pointer(in.Checksum))
-	return nil
-}
-
-func Convert_servicecatalog_BindingSpec_To_v1alpha1_BindingSpec(in *servicecatalog.BindingSpec, out *BindingSpec, s conversion.Scope) error {
-	return autoConvert_servicecatalog_BindingSpec_To_v1alpha1_BindingSpec(in, out, s)
-}
-
-func autoConvert_v1alpha1_BindingStatus_To_servicecatalog_BindingStatus(in *BindingStatus, out *servicecatalog.BindingStatus, s conversion.Scope) error {
-	out.Conditions = *(*[]servicecatalog.BindingCondition)(unsafe.Pointer(&in.Conditions))
-	return nil
-}
-
-func Convert_v1alpha1_BindingStatus_To_servicecatalog_BindingStatus(in *BindingStatus, out *servicecatalog.BindingStatus, s conversion.Scope) error {
-	return autoConvert_v1alpha1_BindingStatus_To_servicecatalog_BindingStatus(in, out, s)
-}
-
-func autoConvert_servicecatalog_BindingStatus_To_v1alpha1_BindingStatus(in *servicecatalog.BindingStatus, out *BindingStatus, s conversion.Scope) error {
-	out.Conditions = *(*[]BindingCondition)(unsafe.Pointer(&in.Conditions))
-	return nil
-}
-
-func Convert_servicecatalog_BindingStatus_To_v1alpha1_BindingStatus(in *servicecatalog.BindingStatus, out *BindingStatus, s conversion.Scope) error {
-	return autoConvert_servicecatalog_BindingStatus_To_v1alpha1_BindingStatus(in, out, s)
-}
-
-func autoConvert_v1alpha1_Broker_To_servicecatalog_Broker(in *Broker, out *servicecatalog.Broker, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v1alpha1_BrokerSpec_To_servicecatalog_BrokerSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
-	}
-	if err := Convert_v1alpha1_BrokerStatus_To_servicecatalog_BrokerStatus(&in.Status, &out.Status, s); err != nil {
-		return err
-	}
-	return nil
-}
-
-func Convert_v1alpha1_Broker_To_servicecatalog_Broker(in *Broker, out *servicecatalog.Broker, s conversion.Scope) error {
-	return autoConvert_v1alpha1_Broker_To_servicecatalog_Broker(in, out, s)
-}
-
-func autoConvert_servicecatalog_Broker_To_v1alpha1_Broker(in *servicecatalog.Broker, out *Broker, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_servicecatalog_BrokerSpec_To_v1alpha1_BrokerSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
-	}
-	if err := Convert_servicecatalog_BrokerStatus_To_v1alpha1_BrokerStatus(&in.Status, &out.Status, s); err != nil {
-		return err
-	}
-	return nil
-}
-
-func Convert_servicecatalog_Broker_To_v1alpha1_Broker(in *servicecatalog.Broker, out *Broker, s conversion.Scope) error {
-	return autoConvert_servicecatalog_Broker_To_v1alpha1_Broker(in, out, s)
-}
-
-func autoConvert_v1alpha1_BrokerCondition_To_servicecatalog_BrokerCondition(in *BrokerCondition, out *servicecatalog.BrokerCondition, s conversion.Scope) error {
-	out.Type = servicecatalog.BrokerConditionType(in.Type)
-	out.Status = servicecatalog.ConditionStatus(in.Status)
-	out.LastTransitionTime = in.LastTransitionTime
-	out.Reason = in.Reason
-	out.Message = in.Message
-	return nil
-}
-
-func Convert_v1alpha1_BrokerCondition_To_servicecatalog_BrokerCondition(in *BrokerCondition, out *servicecatalog.BrokerCondition, s conversion.Scope) error {
-	return autoConvert_v1alpha1_BrokerCondition_To_servicecatalog_BrokerCondition(in, out, s)
-}
-
-func autoConvert_servicecatalog_BrokerCondition_To_v1alpha1_BrokerCondition(in *servicecatalog.BrokerCondition, out *BrokerCondition, s conversion.Scope) error {
-	out.Type = BrokerConditionType(in.Type)
-	out.Status = ConditionStatus(in.Status)
-	out.LastTransitionTime = in.LastTransitionTime
-	out.Reason = in.Reason
-	out.Message = in.Message
-	return nil
-}
-
-func Convert_servicecatalog_BrokerCondition_To_v1alpha1_BrokerCondition(in *servicecatalog.BrokerCondition, out *BrokerCondition, s conversion.Scope) error {
-	return autoConvert_servicecatalog_BrokerCondition_To_v1alpha1_BrokerCondition(in, out, s)
-}
-
-func autoConvert_v1alpha1_BrokerList_To_servicecatalog_BrokerList(in *BrokerList, out *servicecatalog.BrokerList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	out.Items = *(*[]servicecatalog.Broker)(unsafe.Pointer(&in.Items))
-	return nil
-}
-
-func Convert_v1alpha1_BrokerList_To_servicecatalog_BrokerList(in *BrokerList, out *servicecatalog.BrokerList, s conversion.Scope) error {
-	return autoConvert_v1alpha1_BrokerList_To_servicecatalog_BrokerList(in, out, s)
-}
-
-func autoConvert_servicecatalog_BrokerList_To_v1alpha1_BrokerList(in *servicecatalog.BrokerList, out *BrokerList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	out.Items = *(*[]Broker)(unsafe.Pointer(&in.Items))
-	return nil
-}
-
-func Convert_servicecatalog_BrokerList_To_v1alpha1_BrokerList(in *servicecatalog.BrokerList, out *BrokerList, s conversion.Scope) error {
-	return autoConvert_servicecatalog_BrokerList_To_v1alpha1_BrokerList(in, out, s)
-}
-
-func autoConvert_v1alpha1_BrokerSpec_To_servicecatalog_BrokerSpec(in *BrokerSpec, out *servicecatalog.BrokerSpec, s conversion.Scope) error {
+func autoConvert_v1alpha1_ClusterServiceBrokerSpec_To_servicecatalog_ClusterServiceBrokerSpec(in *ClusterServiceBrokerSpec, out *servicecatalog.ClusterServiceBrokerSpec, s conversion.Scope) error {
 	out.URL = in.URL
-	out.AuthSecret = (*v1.ObjectReference)(unsafe.Pointer(in.AuthSecret))
+	out.AuthInfo = (*servicecatalog.ServiceBrokerAuthInfo)(unsafe.Pointer(in.AuthInfo))
+	out.InsecureSkipTLSVerify = in.InsecureSkipTLSVerify
+	out.CABundle = *(*[]byte)(unsafe.Pointer(&in.CABundle))
+	out.RelistBehavior = servicecatalog.ServiceBrokerRelistBehavior(in.RelistBehavior)
+	out.RelistDuration = (*meta_v1.Duration)(unsafe.Pointer(in.RelistDuration))
+	out.RelistRequests = in.RelistRequests
 	return nil
 }
 
-func Convert_v1alpha1_BrokerSpec_To_servicecatalog_BrokerSpec(in *BrokerSpec, out *servicecatalog.BrokerSpec, s conversion.Scope) error {
-	return autoConvert_v1alpha1_BrokerSpec_To_servicecatalog_BrokerSpec(in, out, s)
+// Convert_v1alpha1_ClusterServiceBrokerSpec_To_servicecatalog_ClusterServiceBrokerSpec is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServiceBrokerSpec_To_servicecatalog_ClusterServiceBrokerSpec(in *ClusterServiceBrokerSpec, out *servicecatalog.ClusterServiceBrokerSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServiceBrokerSpec_To_servicecatalog_ClusterServiceBrokerSpec(in, out, s)
 }
 
-func autoConvert_servicecatalog_BrokerSpec_To_v1alpha1_BrokerSpec(in *servicecatalog.BrokerSpec, out *BrokerSpec, s conversion.Scope) error {
+func autoConvert_servicecatalog_ClusterServiceBrokerSpec_To_v1alpha1_ClusterServiceBrokerSpec(in *servicecatalog.ClusterServiceBrokerSpec, out *ClusterServiceBrokerSpec, s conversion.Scope) error {
 	out.URL = in.URL
-	out.AuthSecret = (*v1.ObjectReference)(unsafe.Pointer(in.AuthSecret))
+	out.AuthInfo = (*ServiceBrokerAuthInfo)(unsafe.Pointer(in.AuthInfo))
+	out.InsecureSkipTLSVerify = in.InsecureSkipTLSVerify
+	out.CABundle = *(*[]byte)(unsafe.Pointer(&in.CABundle))
+	out.RelistBehavior = ServiceBrokerRelistBehavior(in.RelistBehavior)
+	out.RelistDuration = (*meta_v1.Duration)(unsafe.Pointer(in.RelistDuration))
+	out.RelistRequests = in.RelistRequests
 	return nil
 }
 
-func Convert_servicecatalog_BrokerSpec_To_v1alpha1_BrokerSpec(in *servicecatalog.BrokerSpec, out *BrokerSpec, s conversion.Scope) error {
-	return autoConvert_servicecatalog_BrokerSpec_To_v1alpha1_BrokerSpec(in, out, s)
+// Convert_servicecatalog_ClusterServiceBrokerSpec_To_v1alpha1_ClusterServiceBrokerSpec is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServiceBrokerSpec_To_v1alpha1_ClusterServiceBrokerSpec(in *servicecatalog.ClusterServiceBrokerSpec, out *ClusterServiceBrokerSpec, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServiceBrokerSpec_To_v1alpha1_ClusterServiceBrokerSpec(in, out, s)
 }
 
-func autoConvert_v1alpha1_BrokerStatus_To_servicecatalog_BrokerStatus(in *BrokerStatus, out *servicecatalog.BrokerStatus, s conversion.Scope) error {
-	out.Conditions = *(*[]servicecatalog.BrokerCondition)(unsafe.Pointer(&in.Conditions))
+func autoConvert_v1alpha1_ClusterServiceBrokerStatus_To_servicecatalog_ClusterServiceBrokerStatus(in *ClusterServiceBrokerStatus, out *servicecatalog.ClusterServiceBrokerStatus, s conversion.Scope) error {
+	out.Conditions = *(*[]servicecatalog.ServiceBrokerCondition)(unsafe.Pointer(&in.Conditions))
+	out.ReconciledGeneration = in.ReconciledGeneration
+	out.OperationStartTime = (*meta_v1.Time)(unsafe.Pointer(in.OperationStartTime))
 	return nil
 }
 
-func Convert_v1alpha1_BrokerStatus_To_servicecatalog_BrokerStatus(in *BrokerStatus, out *servicecatalog.BrokerStatus, s conversion.Scope) error {
-	return autoConvert_v1alpha1_BrokerStatus_To_servicecatalog_BrokerStatus(in, out, s)
+// Convert_v1alpha1_ClusterServiceBrokerStatus_To_servicecatalog_ClusterServiceBrokerStatus is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServiceBrokerStatus_To_servicecatalog_ClusterServiceBrokerStatus(in *ClusterServiceBrokerStatus, out *servicecatalog.ClusterServiceBrokerStatus, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServiceBrokerStatus_To_servicecatalog_ClusterServiceBrokerStatus(in, out, s)
 }
 
-func autoConvert_servicecatalog_BrokerStatus_To_v1alpha1_BrokerStatus(in *servicecatalog.BrokerStatus, out *BrokerStatus, s conversion.Scope) error {
-	out.Conditions = *(*[]BrokerCondition)(unsafe.Pointer(&in.Conditions))
+func autoConvert_servicecatalog_ClusterServiceBrokerStatus_To_v1alpha1_ClusterServiceBrokerStatus(in *servicecatalog.ClusterServiceBrokerStatus, out *ClusterServiceBrokerStatus, s conversion.Scope) error {
+	out.Conditions = *(*[]ServiceBrokerCondition)(unsafe.Pointer(&in.Conditions))
+	out.ReconciledGeneration = in.ReconciledGeneration
+	out.OperationStartTime = (*meta_v1.Time)(unsafe.Pointer(in.OperationStartTime))
 	return nil
 }
 
-func Convert_servicecatalog_BrokerStatus_To_v1alpha1_BrokerStatus(in *servicecatalog.BrokerStatus, out *BrokerStatus, s conversion.Scope) error {
-	return autoConvert_servicecatalog_BrokerStatus_To_v1alpha1_BrokerStatus(in, out, s)
+// Convert_servicecatalog_ClusterServiceBrokerStatus_To_v1alpha1_ClusterServiceBrokerStatus is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServiceBrokerStatus_To_v1alpha1_ClusterServiceBrokerStatus(in *servicecatalog.ClusterServiceBrokerStatus, out *ClusterServiceBrokerStatus, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServiceBrokerStatus_To_v1alpha1_ClusterServiceBrokerStatus(in, out, s)
 }
 
-func autoConvert_v1alpha1_Instance_To_servicecatalog_Instance(in *Instance, out *servicecatalog.Instance, s conversion.Scope) error {
+func autoConvert_v1alpha1_ClusterServiceClass_To_servicecatalog_ClusterServiceClass(in *ClusterServiceClass, out *servicecatalog.ClusterServiceClass, s conversion.Scope) error {
 	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v1alpha1_InstanceSpec_To_servicecatalog_InstanceSpec(&in.Spec, &out.Spec, s); err != nil {
+	if err := Convert_v1alpha1_ClusterServiceClassSpec_To_servicecatalog_ClusterServiceClassSpec(&in.Spec, &out.Spec, s); err != nil {
 		return err
 	}
-	if err := Convert_v1alpha1_InstanceStatus_To_servicecatalog_InstanceStatus(&in.Status, &out.Status, s); err != nil {
+	if err := Convert_v1alpha1_ClusterServiceClassStatus_To_servicecatalog_ClusterServiceClassStatus(&in.Status, &out.Status, s); err != nil {
 		return err
 	}
 	return nil
 }
 
-func Convert_v1alpha1_Instance_To_servicecatalog_Instance(in *Instance, out *servicecatalog.Instance, s conversion.Scope) error {
-	return autoConvert_v1alpha1_Instance_To_servicecatalog_Instance(in, out, s)
+// Convert_v1alpha1_ClusterServiceClass_To_servicecatalog_ClusterServiceClass is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServiceClass_To_servicecatalog_ClusterServiceClass(in *ClusterServiceClass, out *servicecatalog.ClusterServiceClass, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServiceClass_To_servicecatalog_ClusterServiceClass(in, out, s)
 }
 
-func autoConvert_servicecatalog_Instance_To_v1alpha1_Instance(in *servicecatalog.Instance, out *Instance, s conversion.Scope) error {
+func autoConvert_servicecatalog_ClusterServiceClass_To_v1alpha1_ClusterServiceClass(in *servicecatalog.ClusterServiceClass, out *ClusterServiceClass, s conversion.Scope) error {
 	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_servicecatalog_InstanceSpec_To_v1alpha1_InstanceSpec(&in.Spec, &out.Spec, s); err != nil {
+	if err := Convert_servicecatalog_ClusterServiceClassSpec_To_v1alpha1_ClusterServiceClassSpec(&in.Spec, &out.Spec, s); err != nil {
 		return err
 	}
-	if err := Convert_servicecatalog_InstanceStatus_To_v1alpha1_InstanceStatus(&in.Status, &out.Status, s); err != nil {
+	if err := Convert_servicecatalog_ClusterServiceClassStatus_To_v1alpha1_ClusterServiceClassStatus(&in.Status, &out.Status, s); err != nil {
 		return err
 	}
 	return nil
 }
 
-func Convert_servicecatalog_Instance_To_v1alpha1_Instance(in *servicecatalog.Instance, out *Instance, s conversion.Scope) error {
-	return autoConvert_servicecatalog_Instance_To_v1alpha1_Instance(in, out, s)
+// Convert_servicecatalog_ClusterServiceClass_To_v1alpha1_ClusterServiceClass is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServiceClass_To_v1alpha1_ClusterServiceClass(in *servicecatalog.ClusterServiceClass, out *ClusterServiceClass, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServiceClass_To_v1alpha1_ClusterServiceClass(in, out, s)
 }
 
-func autoConvert_v1alpha1_InstanceCondition_To_servicecatalog_InstanceCondition(in *InstanceCondition, out *servicecatalog.InstanceCondition, s conversion.Scope) error {
-	out.Type = servicecatalog.InstanceConditionType(in.Type)
+func autoConvert_v1alpha1_ClusterServiceClassList_To_servicecatalog_ClusterServiceClassList(in *ClusterServiceClassList, out *servicecatalog.ClusterServiceClassList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]servicecatalog.ClusterServiceClass)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_v1alpha1_ClusterServiceClassList_To_servicecatalog_ClusterServiceClassList is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServiceClassList_To_servicecatalog_ClusterServiceClassList(in *ClusterServiceClassList, out *servicecatalog.ClusterServiceClassList, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServiceClassList_To_servicecatalog_ClusterServiceClassList(in, out, s)
+}
+
+func autoConvert_servicecatalog_ClusterServiceClassList_To_v1alpha1_ClusterServiceClassList(in *servicecatalog.ClusterServiceClassList, out *ClusterServiceClassList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]ClusterServiceClass)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_servicecatalog_ClusterServiceClassList_To_v1alpha1_ClusterServiceClassList is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServiceClassList_To_v1alpha1_ClusterServiceClassList(in *servicecatalog.ClusterServiceClassList, out *ClusterServiceClassList, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServiceClassList_To_v1alpha1_ClusterServiceClassList(in, out, s)
+}
+
+func autoConvert_v1alpha1_ClusterServiceClassSpec_To_servicecatalog_ClusterServiceClassSpec(in *ClusterServiceClassSpec, out *servicecatalog.ClusterServiceClassSpec, s conversion.Scope) error {
+	out.ClusterServiceBrokerName = in.ClusterServiceBrokerName
+	out.ExternalName = in.ExternalName
+	out.ExternalID = in.ExternalID
+	out.Description = in.Description
+	out.Bindable = in.Bindable
+	out.PlanUpdatable = in.PlanUpdatable
+	out.ExternalMetadata = (*runtime.RawExtension)(unsafe.Pointer(in.ExternalMetadata))
+	out.Tags = *(*[]string)(unsafe.Pointer(&in.Tags))
+	out.Requires = *(*[]string)(unsafe.Pointer(&in.Requires))
+	return nil
+}
+
+// Convert_v1alpha1_ClusterServiceClassSpec_To_servicecatalog_ClusterServiceClassSpec is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServiceClassSpec_To_servicecatalog_ClusterServiceClassSpec(in *ClusterServiceClassSpec, out *servicecatalog.ClusterServiceClassSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServiceClassSpec_To_servicecatalog_ClusterServiceClassSpec(in, out, s)
+}
+
+func autoConvert_servicecatalog_ClusterServiceClassSpec_To_v1alpha1_ClusterServiceClassSpec(in *servicecatalog.ClusterServiceClassSpec, out *ClusterServiceClassSpec, s conversion.Scope) error {
+	out.ClusterServiceBrokerName = in.ClusterServiceBrokerName
+	out.ExternalName = in.ExternalName
+	out.ExternalID = in.ExternalID
+	out.Description = in.Description
+	out.Bindable = in.Bindable
+	out.PlanUpdatable = in.PlanUpdatable
+	out.ExternalMetadata = (*runtime.RawExtension)(unsafe.Pointer(in.ExternalMetadata))
+	out.Tags = *(*[]string)(unsafe.Pointer(&in.Tags))
+	out.Requires = *(*[]string)(unsafe.Pointer(&in.Requires))
+	return nil
+}
+
+// Convert_servicecatalog_ClusterServiceClassSpec_To_v1alpha1_ClusterServiceClassSpec is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServiceClassSpec_To_v1alpha1_ClusterServiceClassSpec(in *servicecatalog.ClusterServiceClassSpec, out *ClusterServiceClassSpec, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServiceClassSpec_To_v1alpha1_ClusterServiceClassSpec(in, out, s)
+}
+
+func autoConvert_v1alpha1_ClusterServiceClassStatus_To_servicecatalog_ClusterServiceClassStatus(in *ClusterServiceClassStatus, out *servicecatalog.ClusterServiceClassStatus, s conversion.Scope) error {
+	out.RemovedFromBrokerCatalog = in.RemovedFromBrokerCatalog
+	return nil
+}
+
+// Convert_v1alpha1_ClusterServiceClassStatus_To_servicecatalog_ClusterServiceClassStatus is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServiceClassStatus_To_servicecatalog_ClusterServiceClassStatus(in *ClusterServiceClassStatus, out *servicecatalog.ClusterServiceClassStatus, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServiceClassStatus_To_servicecatalog_ClusterServiceClassStatus(in, out, s)
+}
+
+func autoConvert_servicecatalog_ClusterServiceClassStatus_To_v1alpha1_ClusterServiceClassStatus(in *servicecatalog.ClusterServiceClassStatus, out *ClusterServiceClassStatus, s conversion.Scope) error {
+	out.RemovedFromBrokerCatalog = in.RemovedFromBrokerCatalog
+	return nil
+}
+
+// Convert_servicecatalog_ClusterServiceClassStatus_To_v1alpha1_ClusterServiceClassStatus is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServiceClassStatus_To_v1alpha1_ClusterServiceClassStatus(in *servicecatalog.ClusterServiceClassStatus, out *ClusterServiceClassStatus, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServiceClassStatus_To_v1alpha1_ClusterServiceClassStatus(in, out, s)
+}
+
+func autoConvert_v1alpha1_ClusterServicePlan_To_servicecatalog_ClusterServicePlan(in *ClusterServicePlan, out *servicecatalog.ClusterServicePlan, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_v1alpha1_ClusterServicePlanSpec_To_servicecatalog_ClusterServicePlanSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	if err := Convert_v1alpha1_ClusterServicePlanStatus_To_servicecatalog_ClusterServicePlanStatus(&in.Status, &out.Status, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_v1alpha1_ClusterServicePlan_To_servicecatalog_ClusterServicePlan is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServicePlan_To_servicecatalog_ClusterServicePlan(in *ClusterServicePlan, out *servicecatalog.ClusterServicePlan, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServicePlan_To_servicecatalog_ClusterServicePlan(in, out, s)
+}
+
+func autoConvert_servicecatalog_ClusterServicePlan_To_v1alpha1_ClusterServicePlan(in *servicecatalog.ClusterServicePlan, out *ClusterServicePlan, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_servicecatalog_ClusterServicePlanSpec_To_v1alpha1_ClusterServicePlanSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	if err := Convert_servicecatalog_ClusterServicePlanStatus_To_v1alpha1_ClusterServicePlanStatus(&in.Status, &out.Status, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_servicecatalog_ClusterServicePlan_To_v1alpha1_ClusterServicePlan is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServicePlan_To_v1alpha1_ClusterServicePlan(in *servicecatalog.ClusterServicePlan, out *ClusterServicePlan, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServicePlan_To_v1alpha1_ClusterServicePlan(in, out, s)
+}
+
+func autoConvert_v1alpha1_ClusterServicePlanList_To_servicecatalog_ClusterServicePlanList(in *ClusterServicePlanList, out *servicecatalog.ClusterServicePlanList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]servicecatalog.ClusterServicePlan)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_v1alpha1_ClusterServicePlanList_To_servicecatalog_ClusterServicePlanList is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServicePlanList_To_servicecatalog_ClusterServicePlanList(in *ClusterServicePlanList, out *servicecatalog.ClusterServicePlanList, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServicePlanList_To_servicecatalog_ClusterServicePlanList(in, out, s)
+}
+
+func autoConvert_servicecatalog_ClusterServicePlanList_To_v1alpha1_ClusterServicePlanList(in *servicecatalog.ClusterServicePlanList, out *ClusterServicePlanList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]ClusterServicePlan)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_servicecatalog_ClusterServicePlanList_To_v1alpha1_ClusterServicePlanList is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServicePlanList_To_v1alpha1_ClusterServicePlanList(in *servicecatalog.ClusterServicePlanList, out *ClusterServicePlanList, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServicePlanList_To_v1alpha1_ClusterServicePlanList(in, out, s)
+}
+
+func autoConvert_v1alpha1_ClusterServicePlanSpec_To_servicecatalog_ClusterServicePlanSpec(in *ClusterServicePlanSpec, out *servicecatalog.ClusterServicePlanSpec, s conversion.Scope) error {
+	out.ClusterServiceBrokerName = in.ClusterServiceBrokerName
+	out.ExternalName = in.ExternalName
+	out.ExternalID = in.ExternalID
+	out.Description = in.Description
+	out.Bindable = (*bool)(unsafe.Pointer(in.Bindable))
+	out.Free = in.Free
+	out.ExternalMetadata = (*runtime.RawExtension)(unsafe.Pointer(in.ExternalMetadata))
+	out.ServiceInstanceCreateParameterSchema = (*runtime.RawExtension)(unsafe.Pointer(in.ServiceInstanceCreateParameterSchema))
+	out.ServiceInstanceUpdateParameterSchema = (*runtime.RawExtension)(unsafe.Pointer(in.ServiceInstanceUpdateParameterSchema))
+	out.ServiceBindingCreateParameterSchema = (*runtime.RawExtension)(unsafe.Pointer(in.ServiceBindingCreateParameterSchema))
+	out.ClusterServiceClassRef = in.ClusterServiceClassRef
+	return nil
+}
+
+// Convert_v1alpha1_ClusterServicePlanSpec_To_servicecatalog_ClusterServicePlanSpec is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServicePlanSpec_To_servicecatalog_ClusterServicePlanSpec(in *ClusterServicePlanSpec, out *servicecatalog.ClusterServicePlanSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServicePlanSpec_To_servicecatalog_ClusterServicePlanSpec(in, out, s)
+}
+
+func autoConvert_servicecatalog_ClusterServicePlanSpec_To_v1alpha1_ClusterServicePlanSpec(in *servicecatalog.ClusterServicePlanSpec, out *ClusterServicePlanSpec, s conversion.Scope) error {
+	out.ClusterServiceBrokerName = in.ClusterServiceBrokerName
+	out.ExternalName = in.ExternalName
+	out.ExternalID = in.ExternalID
+	out.Description = in.Description
+	out.Bindable = (*bool)(unsafe.Pointer(in.Bindable))
+	out.Free = in.Free
+	out.ExternalMetadata = (*runtime.RawExtension)(unsafe.Pointer(in.ExternalMetadata))
+	out.ServiceInstanceCreateParameterSchema = (*runtime.RawExtension)(unsafe.Pointer(in.ServiceInstanceCreateParameterSchema))
+	out.ServiceInstanceUpdateParameterSchema = (*runtime.RawExtension)(unsafe.Pointer(in.ServiceInstanceUpdateParameterSchema))
+	out.ServiceBindingCreateParameterSchema = (*runtime.RawExtension)(unsafe.Pointer(in.ServiceBindingCreateParameterSchema))
+	out.ClusterServiceClassRef = in.ClusterServiceClassRef
+	return nil
+}
+
+// Convert_servicecatalog_ClusterServicePlanSpec_To_v1alpha1_ClusterServicePlanSpec is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServicePlanSpec_To_v1alpha1_ClusterServicePlanSpec(in *servicecatalog.ClusterServicePlanSpec, out *ClusterServicePlanSpec, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServicePlanSpec_To_v1alpha1_ClusterServicePlanSpec(in, out, s)
+}
+
+func autoConvert_v1alpha1_ClusterServicePlanStatus_To_servicecatalog_ClusterServicePlanStatus(in *ClusterServicePlanStatus, out *servicecatalog.ClusterServicePlanStatus, s conversion.Scope) error {
+	out.RemovedFromBrokerCatalog = in.RemovedFromBrokerCatalog
+	return nil
+}
+
+// Convert_v1alpha1_ClusterServicePlanStatus_To_servicecatalog_ClusterServicePlanStatus is an autogenerated conversion function.
+func Convert_v1alpha1_ClusterServicePlanStatus_To_servicecatalog_ClusterServicePlanStatus(in *ClusterServicePlanStatus, out *servicecatalog.ClusterServicePlanStatus, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ClusterServicePlanStatus_To_servicecatalog_ClusterServicePlanStatus(in, out, s)
+}
+
+func autoConvert_servicecatalog_ClusterServicePlanStatus_To_v1alpha1_ClusterServicePlanStatus(in *servicecatalog.ClusterServicePlanStatus, out *ClusterServicePlanStatus, s conversion.Scope) error {
+	out.RemovedFromBrokerCatalog = in.RemovedFromBrokerCatalog
+	return nil
+}
+
+// Convert_servicecatalog_ClusterServicePlanStatus_To_v1alpha1_ClusterServicePlanStatus is an autogenerated conversion function.
+func Convert_servicecatalog_ClusterServicePlanStatus_To_v1alpha1_ClusterServicePlanStatus(in *servicecatalog.ClusterServicePlanStatus, out *ClusterServicePlanStatus, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ClusterServicePlanStatus_To_v1alpha1_ClusterServicePlanStatus(in, out, s)
+}
+
+func autoConvert_v1alpha1_ParametersFromSource_To_servicecatalog_ParametersFromSource(in *ParametersFromSource, out *servicecatalog.ParametersFromSource, s conversion.Scope) error {
+	out.SecretKeyRef = (*servicecatalog.SecretKeyReference)(unsafe.Pointer(in.SecretKeyRef))
+	return nil
+}
+
+// Convert_v1alpha1_ParametersFromSource_To_servicecatalog_ParametersFromSource is an autogenerated conversion function.
+func Convert_v1alpha1_ParametersFromSource_To_servicecatalog_ParametersFromSource(in *ParametersFromSource, out *servicecatalog.ParametersFromSource, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ParametersFromSource_To_servicecatalog_ParametersFromSource(in, out, s)
+}
+
+func autoConvert_servicecatalog_ParametersFromSource_To_v1alpha1_ParametersFromSource(in *servicecatalog.ParametersFromSource, out *ParametersFromSource, s conversion.Scope) error {
+	out.SecretKeyRef = (*SecretKeyReference)(unsafe.Pointer(in.SecretKeyRef))
+	return nil
+}
+
+// Convert_servicecatalog_ParametersFromSource_To_v1alpha1_ParametersFromSource is an autogenerated conversion function.
+func Convert_servicecatalog_ParametersFromSource_To_v1alpha1_ParametersFromSource(in *servicecatalog.ParametersFromSource, out *ParametersFromSource, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ParametersFromSource_To_v1alpha1_ParametersFromSource(in, out, s)
+}
+
+func autoConvert_v1alpha1_PlanReference_To_servicecatalog_PlanReference(in *PlanReference, out *servicecatalog.PlanReference, s conversion.Scope) error {
+	out.ExternalClusterServiceClassName = in.ExternalClusterServiceClassName
+	out.ExternalClusterServicePlanName = in.ExternalClusterServicePlanName
+	return nil
+}
+
+// Convert_v1alpha1_PlanReference_To_servicecatalog_PlanReference is an autogenerated conversion function.
+func Convert_v1alpha1_PlanReference_To_servicecatalog_PlanReference(in *PlanReference, out *servicecatalog.PlanReference, s conversion.Scope) error {
+	return autoConvert_v1alpha1_PlanReference_To_servicecatalog_PlanReference(in, out, s)
+}
+
+func autoConvert_servicecatalog_PlanReference_To_v1alpha1_PlanReference(in *servicecatalog.PlanReference, out *PlanReference, s conversion.Scope) error {
+	out.ExternalClusterServiceClassName = in.ExternalClusterServiceClassName
+	out.ExternalClusterServicePlanName = in.ExternalClusterServicePlanName
+	return nil
+}
+
+// Convert_servicecatalog_PlanReference_To_v1alpha1_PlanReference is an autogenerated conversion function.
+func Convert_servicecatalog_PlanReference_To_v1alpha1_PlanReference(in *servicecatalog.PlanReference, out *PlanReference, s conversion.Scope) error {
+	return autoConvert_servicecatalog_PlanReference_To_v1alpha1_PlanReference(in, out, s)
+}
+
+func autoConvert_v1alpha1_SecretKeyReference_To_servicecatalog_SecretKeyReference(in *SecretKeyReference, out *servicecatalog.SecretKeyReference, s conversion.Scope) error {
+	out.Name = in.Name
+	out.Key = in.Key
+	return nil
+}
+
+// Convert_v1alpha1_SecretKeyReference_To_servicecatalog_SecretKeyReference is an autogenerated conversion function.
+func Convert_v1alpha1_SecretKeyReference_To_servicecatalog_SecretKeyReference(in *SecretKeyReference, out *servicecatalog.SecretKeyReference, s conversion.Scope) error {
+	return autoConvert_v1alpha1_SecretKeyReference_To_servicecatalog_SecretKeyReference(in, out, s)
+}
+
+func autoConvert_servicecatalog_SecretKeyReference_To_v1alpha1_SecretKeyReference(in *servicecatalog.SecretKeyReference, out *SecretKeyReference, s conversion.Scope) error {
+	out.Name = in.Name
+	out.Key = in.Key
+	return nil
+}
+
+// Convert_servicecatalog_SecretKeyReference_To_v1alpha1_SecretKeyReference is an autogenerated conversion function.
+func Convert_servicecatalog_SecretKeyReference_To_v1alpha1_SecretKeyReference(in *servicecatalog.SecretKeyReference, out *SecretKeyReference, s conversion.Scope) error {
+	return autoConvert_servicecatalog_SecretKeyReference_To_v1alpha1_SecretKeyReference(in, out, s)
+}
+
+func autoConvert_v1alpha1_ServiceBinding_To_servicecatalog_ServiceBinding(in *ServiceBinding, out *servicecatalog.ServiceBinding, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_v1alpha1_ServiceBindingSpec_To_servicecatalog_ServiceBindingSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	if err := Convert_v1alpha1_ServiceBindingStatus_To_servicecatalog_ServiceBindingStatus(&in.Status, &out.Status, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_v1alpha1_ServiceBinding_To_servicecatalog_ServiceBinding is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceBinding_To_servicecatalog_ServiceBinding(in *ServiceBinding, out *servicecatalog.ServiceBinding, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceBinding_To_servicecatalog_ServiceBinding(in, out, s)
+}
+
+func autoConvert_servicecatalog_ServiceBinding_To_v1alpha1_ServiceBinding(in *servicecatalog.ServiceBinding, out *ServiceBinding, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_servicecatalog_ServiceBindingSpec_To_v1alpha1_ServiceBindingSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	if err := Convert_servicecatalog_ServiceBindingStatus_To_v1alpha1_ServiceBindingStatus(&in.Status, &out.Status, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_servicecatalog_ServiceBinding_To_v1alpha1_ServiceBinding is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceBinding_To_v1alpha1_ServiceBinding(in *servicecatalog.ServiceBinding, out *ServiceBinding, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceBinding_To_v1alpha1_ServiceBinding(in, out, s)
+}
+
+func autoConvert_v1alpha1_ServiceBindingCondition_To_servicecatalog_ServiceBindingCondition(in *ServiceBindingCondition, out *servicecatalog.ServiceBindingCondition, s conversion.Scope) error {
+	out.Type = servicecatalog.ServiceBindingConditionType(in.Type)
 	out.Status = servicecatalog.ConditionStatus(in.Status)
 	out.LastTransitionTime = in.LastTransitionTime
 	out.Reason = in.Reason
@@ -348,12 +583,13 @@ func autoConvert_v1alpha1_InstanceCondition_To_servicecatalog_InstanceCondition(
 	return nil
 }
 
-func Convert_v1alpha1_InstanceCondition_To_servicecatalog_InstanceCondition(in *InstanceCondition, out *servicecatalog.InstanceCondition, s conversion.Scope) error {
-	return autoConvert_v1alpha1_InstanceCondition_To_servicecatalog_InstanceCondition(in, out, s)
+// Convert_v1alpha1_ServiceBindingCondition_To_servicecatalog_ServiceBindingCondition is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceBindingCondition_To_servicecatalog_ServiceBindingCondition(in *ServiceBindingCondition, out *servicecatalog.ServiceBindingCondition, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceBindingCondition_To_servicecatalog_ServiceBindingCondition(in, out, s)
 }
 
-func autoConvert_servicecatalog_InstanceCondition_To_v1alpha1_InstanceCondition(in *servicecatalog.InstanceCondition, out *InstanceCondition, s conversion.Scope) error {
-	out.Type = InstanceConditionType(in.Type)
+func autoConvert_servicecatalog_ServiceBindingCondition_To_v1alpha1_ServiceBindingCondition(in *servicecatalog.ServiceBindingCondition, out *ServiceBindingCondition, s conversion.Scope) error {
+	out.Type = ServiceBindingConditionType(in.Type)
 	out.Status = ConditionStatus(in.Status)
 	out.LastTransitionTime = in.LastTransitionTime
 	out.Reason = in.Reason
@@ -361,206 +597,377 @@ func autoConvert_servicecatalog_InstanceCondition_To_v1alpha1_InstanceCondition(
 	return nil
 }
 
-func Convert_servicecatalog_InstanceCondition_To_v1alpha1_InstanceCondition(in *servicecatalog.InstanceCondition, out *InstanceCondition, s conversion.Scope) error {
-	return autoConvert_servicecatalog_InstanceCondition_To_v1alpha1_InstanceCondition(in, out, s)
+// Convert_servicecatalog_ServiceBindingCondition_To_v1alpha1_ServiceBindingCondition is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceBindingCondition_To_v1alpha1_ServiceBindingCondition(in *servicecatalog.ServiceBindingCondition, out *ServiceBindingCondition, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceBindingCondition_To_v1alpha1_ServiceBindingCondition(in, out, s)
 }
 
-func autoConvert_v1alpha1_InstanceList_To_servicecatalog_InstanceList(in *InstanceList, out *servicecatalog.InstanceList, s conversion.Scope) error {
+func autoConvert_v1alpha1_ServiceBindingList_To_servicecatalog_ServiceBindingList(in *ServiceBindingList, out *servicecatalog.ServiceBindingList, s conversion.Scope) error {
 	out.ListMeta = in.ListMeta
-	out.Items = *(*[]servicecatalog.Instance)(unsafe.Pointer(&in.Items))
+	out.Items = *(*[]servicecatalog.ServiceBinding)(unsafe.Pointer(&in.Items))
 	return nil
 }
 
-func Convert_v1alpha1_InstanceList_To_servicecatalog_InstanceList(in *InstanceList, out *servicecatalog.InstanceList, s conversion.Scope) error {
-	return autoConvert_v1alpha1_InstanceList_To_servicecatalog_InstanceList(in, out, s)
+// Convert_v1alpha1_ServiceBindingList_To_servicecatalog_ServiceBindingList is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceBindingList_To_servicecatalog_ServiceBindingList(in *ServiceBindingList, out *servicecatalog.ServiceBindingList, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceBindingList_To_servicecatalog_ServiceBindingList(in, out, s)
 }
 
-func autoConvert_servicecatalog_InstanceList_To_v1alpha1_InstanceList(in *servicecatalog.InstanceList, out *InstanceList, s conversion.Scope) error {
+func autoConvert_servicecatalog_ServiceBindingList_To_v1alpha1_ServiceBindingList(in *servicecatalog.ServiceBindingList, out *ServiceBindingList, s conversion.Scope) error {
 	out.ListMeta = in.ListMeta
-	out.Items = *(*[]Instance)(unsafe.Pointer(&in.Items))
+	out.Items = *(*[]ServiceBinding)(unsafe.Pointer(&in.Items))
 	return nil
 }
 
-func Convert_servicecatalog_InstanceList_To_v1alpha1_InstanceList(in *servicecatalog.InstanceList, out *InstanceList, s conversion.Scope) error {
-	return autoConvert_servicecatalog_InstanceList_To_v1alpha1_InstanceList(in, out, s)
+// Convert_servicecatalog_ServiceBindingList_To_v1alpha1_ServiceBindingList is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceBindingList_To_v1alpha1_ServiceBindingList(in *servicecatalog.ServiceBindingList, out *ServiceBindingList, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceBindingList_To_v1alpha1_ServiceBindingList(in, out, s)
 }
 
-func autoConvert_v1alpha1_InstanceSpec_To_servicecatalog_InstanceSpec(in *InstanceSpec, out *servicecatalog.InstanceSpec, s conversion.Scope) error {
-	out.ServiceClassName = in.ServiceClassName
-	out.PlanName = in.PlanName
+func autoConvert_v1alpha1_ServiceBindingPropertiesState_To_servicecatalog_ServiceBindingPropertiesState(in *ServiceBindingPropertiesState, out *servicecatalog.ServiceBindingPropertiesState, s conversion.Scope) error {
 	out.Parameters = (*runtime.RawExtension)(unsafe.Pointer(in.Parameters))
-	out.OSBGUID = in.OSBGUID
-	out.Checksum = (*string)(unsafe.Pointer(in.Checksum))
+	out.ParametersChecksum = in.ParametersChecksum
+	out.UserInfo = (*servicecatalog.UserInfo)(unsafe.Pointer(in.UserInfo))
 	return nil
 }
 
-func Convert_v1alpha1_InstanceSpec_To_servicecatalog_InstanceSpec(in *InstanceSpec, out *servicecatalog.InstanceSpec, s conversion.Scope) error {
-	return autoConvert_v1alpha1_InstanceSpec_To_servicecatalog_InstanceSpec(in, out, s)
+// Convert_v1alpha1_ServiceBindingPropertiesState_To_servicecatalog_ServiceBindingPropertiesState is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceBindingPropertiesState_To_servicecatalog_ServiceBindingPropertiesState(in *ServiceBindingPropertiesState, out *servicecatalog.ServiceBindingPropertiesState, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceBindingPropertiesState_To_servicecatalog_ServiceBindingPropertiesState(in, out, s)
 }
 
-func autoConvert_servicecatalog_InstanceSpec_To_v1alpha1_InstanceSpec(in *servicecatalog.InstanceSpec, out *InstanceSpec, s conversion.Scope) error {
-	out.ServiceClassName = in.ServiceClassName
-	out.PlanName = in.PlanName
+func autoConvert_servicecatalog_ServiceBindingPropertiesState_To_v1alpha1_ServiceBindingPropertiesState(in *servicecatalog.ServiceBindingPropertiesState, out *ServiceBindingPropertiesState, s conversion.Scope) error {
 	out.Parameters = (*runtime.RawExtension)(unsafe.Pointer(in.Parameters))
-	out.OSBGUID = in.OSBGUID
-	out.Checksum = (*string)(unsafe.Pointer(in.Checksum))
+	out.ParametersChecksum = in.ParametersChecksum
+	out.UserInfo = (*UserInfo)(unsafe.Pointer(in.UserInfo))
 	return nil
 }
 
-func Convert_servicecatalog_InstanceSpec_To_v1alpha1_InstanceSpec(in *servicecatalog.InstanceSpec, out *InstanceSpec, s conversion.Scope) error {
-	return autoConvert_servicecatalog_InstanceSpec_To_v1alpha1_InstanceSpec(in, out, s)
+// Convert_servicecatalog_ServiceBindingPropertiesState_To_v1alpha1_ServiceBindingPropertiesState is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceBindingPropertiesState_To_v1alpha1_ServiceBindingPropertiesState(in *servicecatalog.ServiceBindingPropertiesState, out *ServiceBindingPropertiesState, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceBindingPropertiesState_To_v1alpha1_ServiceBindingPropertiesState(in, out, s)
 }
 
-func autoConvert_v1alpha1_InstanceStatus_To_servicecatalog_InstanceStatus(in *InstanceStatus, out *servicecatalog.InstanceStatus, s conversion.Scope) error {
-	out.Conditions = *(*[]servicecatalog.InstanceCondition)(unsafe.Pointer(&in.Conditions))
+func autoConvert_v1alpha1_ServiceBindingSpec_To_servicecatalog_ServiceBindingSpec(in *ServiceBindingSpec, out *servicecatalog.ServiceBindingSpec, s conversion.Scope) error {
+	out.ServiceInstanceRef = in.ServiceInstanceRef
+	out.Parameters = (*runtime.RawExtension)(unsafe.Pointer(in.Parameters))
+	out.ParametersFrom = *(*[]servicecatalog.ParametersFromSource)(unsafe.Pointer(&in.ParametersFrom))
+	out.SecretName = in.SecretName
+	out.ExternalID = in.ExternalID
+	out.UserInfo = (*servicecatalog.UserInfo)(unsafe.Pointer(in.UserInfo))
+	return nil
+}
+
+// Convert_v1alpha1_ServiceBindingSpec_To_servicecatalog_ServiceBindingSpec is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceBindingSpec_To_servicecatalog_ServiceBindingSpec(in *ServiceBindingSpec, out *servicecatalog.ServiceBindingSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceBindingSpec_To_servicecatalog_ServiceBindingSpec(in, out, s)
+}
+
+func autoConvert_servicecatalog_ServiceBindingSpec_To_v1alpha1_ServiceBindingSpec(in *servicecatalog.ServiceBindingSpec, out *ServiceBindingSpec, s conversion.Scope) error {
+	out.ServiceInstanceRef = in.ServiceInstanceRef
+	out.Parameters = (*runtime.RawExtension)(unsafe.Pointer(in.Parameters))
+	out.ParametersFrom = *(*[]ParametersFromSource)(unsafe.Pointer(&in.ParametersFrom))
+	out.SecretName = in.SecretName
+	out.ExternalID = in.ExternalID
+	out.UserInfo = (*UserInfo)(unsafe.Pointer(in.UserInfo))
+	return nil
+}
+
+// Convert_servicecatalog_ServiceBindingSpec_To_v1alpha1_ServiceBindingSpec is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceBindingSpec_To_v1alpha1_ServiceBindingSpec(in *servicecatalog.ServiceBindingSpec, out *ServiceBindingSpec, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceBindingSpec_To_v1alpha1_ServiceBindingSpec(in, out, s)
+}
+
+func autoConvert_v1alpha1_ServiceBindingStatus_To_servicecatalog_ServiceBindingStatus(in *ServiceBindingStatus, out *servicecatalog.ServiceBindingStatus, s conversion.Scope) error {
+	out.Conditions = *(*[]servicecatalog.ServiceBindingCondition)(unsafe.Pointer(&in.Conditions))
+	out.CurrentOperation = servicecatalog.ServiceBindingOperation(in.CurrentOperation)
+	out.ReconciledGeneration = in.ReconciledGeneration
+	out.OperationStartTime = (*meta_v1.Time)(unsafe.Pointer(in.OperationStartTime))
+	out.InProgressProperties = (*servicecatalog.ServiceBindingPropertiesState)(unsafe.Pointer(in.InProgressProperties))
+	out.ExternalProperties = (*servicecatalog.ServiceBindingPropertiesState)(unsafe.Pointer(in.ExternalProperties))
+	out.OrphanMitigationInProgress = in.OrphanMitigationInProgress
+	return nil
+}
+
+// Convert_v1alpha1_ServiceBindingStatus_To_servicecatalog_ServiceBindingStatus is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceBindingStatus_To_servicecatalog_ServiceBindingStatus(in *ServiceBindingStatus, out *servicecatalog.ServiceBindingStatus, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceBindingStatus_To_servicecatalog_ServiceBindingStatus(in, out, s)
+}
+
+func autoConvert_servicecatalog_ServiceBindingStatus_To_v1alpha1_ServiceBindingStatus(in *servicecatalog.ServiceBindingStatus, out *ServiceBindingStatus, s conversion.Scope) error {
+	out.Conditions = *(*[]ServiceBindingCondition)(unsafe.Pointer(&in.Conditions))
+	out.CurrentOperation = ServiceBindingOperation(in.CurrentOperation)
+	out.ReconciledGeneration = in.ReconciledGeneration
+	out.OperationStartTime = (*meta_v1.Time)(unsafe.Pointer(in.OperationStartTime))
+	out.InProgressProperties = (*ServiceBindingPropertiesState)(unsafe.Pointer(in.InProgressProperties))
+	out.ExternalProperties = (*ServiceBindingPropertiesState)(unsafe.Pointer(in.ExternalProperties))
+	out.OrphanMitigationInProgress = in.OrphanMitigationInProgress
+	return nil
+}
+
+// Convert_servicecatalog_ServiceBindingStatus_To_v1alpha1_ServiceBindingStatus is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceBindingStatus_To_v1alpha1_ServiceBindingStatus(in *servicecatalog.ServiceBindingStatus, out *ServiceBindingStatus, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceBindingStatus_To_v1alpha1_ServiceBindingStatus(in, out, s)
+}
+
+func autoConvert_v1alpha1_ServiceBrokerAuthInfo_To_servicecatalog_ServiceBrokerAuthInfo(in *ServiceBrokerAuthInfo, out *servicecatalog.ServiceBrokerAuthInfo, s conversion.Scope) error {
+	out.Basic = (*servicecatalog.BasicAuthConfig)(unsafe.Pointer(in.Basic))
+	out.Bearer = (*servicecatalog.BearerTokenAuthConfig)(unsafe.Pointer(in.Bearer))
+	out.BasicAuthSecret = (*v1.ObjectReference)(unsafe.Pointer(in.BasicAuthSecret))
+	return nil
+}
+
+// Convert_v1alpha1_ServiceBrokerAuthInfo_To_servicecatalog_ServiceBrokerAuthInfo is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceBrokerAuthInfo_To_servicecatalog_ServiceBrokerAuthInfo(in *ServiceBrokerAuthInfo, out *servicecatalog.ServiceBrokerAuthInfo, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceBrokerAuthInfo_To_servicecatalog_ServiceBrokerAuthInfo(in, out, s)
+}
+
+func autoConvert_servicecatalog_ServiceBrokerAuthInfo_To_v1alpha1_ServiceBrokerAuthInfo(in *servicecatalog.ServiceBrokerAuthInfo, out *ServiceBrokerAuthInfo, s conversion.Scope) error {
+	out.Basic = (*BasicAuthConfig)(unsafe.Pointer(in.Basic))
+	out.Bearer = (*BearerTokenAuthConfig)(unsafe.Pointer(in.Bearer))
+	out.BasicAuthSecret = (*v1.ObjectReference)(unsafe.Pointer(in.BasicAuthSecret))
+	return nil
+}
+
+// Convert_servicecatalog_ServiceBrokerAuthInfo_To_v1alpha1_ServiceBrokerAuthInfo is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceBrokerAuthInfo_To_v1alpha1_ServiceBrokerAuthInfo(in *servicecatalog.ServiceBrokerAuthInfo, out *ServiceBrokerAuthInfo, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceBrokerAuthInfo_To_v1alpha1_ServiceBrokerAuthInfo(in, out, s)
+}
+
+func autoConvert_v1alpha1_ServiceBrokerCondition_To_servicecatalog_ServiceBrokerCondition(in *ServiceBrokerCondition, out *servicecatalog.ServiceBrokerCondition, s conversion.Scope) error {
+	out.Type = servicecatalog.ServiceBrokerConditionType(in.Type)
+	out.Status = servicecatalog.ConditionStatus(in.Status)
+	out.LastTransitionTime = in.LastTransitionTime
+	out.Reason = in.Reason
+	out.Message = in.Message
+	return nil
+}
+
+// Convert_v1alpha1_ServiceBrokerCondition_To_servicecatalog_ServiceBrokerCondition is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceBrokerCondition_To_servicecatalog_ServiceBrokerCondition(in *ServiceBrokerCondition, out *servicecatalog.ServiceBrokerCondition, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceBrokerCondition_To_servicecatalog_ServiceBrokerCondition(in, out, s)
+}
+
+func autoConvert_servicecatalog_ServiceBrokerCondition_To_v1alpha1_ServiceBrokerCondition(in *servicecatalog.ServiceBrokerCondition, out *ServiceBrokerCondition, s conversion.Scope) error {
+	out.Type = ServiceBrokerConditionType(in.Type)
+	out.Status = ConditionStatus(in.Status)
+	out.LastTransitionTime = in.LastTransitionTime
+	out.Reason = in.Reason
+	out.Message = in.Message
+	return nil
+}
+
+// Convert_servicecatalog_ServiceBrokerCondition_To_v1alpha1_ServiceBrokerCondition is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceBrokerCondition_To_v1alpha1_ServiceBrokerCondition(in *servicecatalog.ServiceBrokerCondition, out *ServiceBrokerCondition, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceBrokerCondition_To_v1alpha1_ServiceBrokerCondition(in, out, s)
+}
+
+func autoConvert_v1alpha1_ServiceInstance_To_servicecatalog_ServiceInstance(in *ServiceInstance, out *servicecatalog.ServiceInstance, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_v1alpha1_ServiceInstanceSpec_To_servicecatalog_ServiceInstanceSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	if err := Convert_v1alpha1_ServiceInstanceStatus_To_servicecatalog_ServiceInstanceStatus(&in.Status, &out.Status, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_v1alpha1_ServiceInstance_To_servicecatalog_ServiceInstance is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceInstance_To_servicecatalog_ServiceInstance(in *ServiceInstance, out *servicecatalog.ServiceInstance, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceInstance_To_servicecatalog_ServiceInstance(in, out, s)
+}
+
+func autoConvert_servicecatalog_ServiceInstance_To_v1alpha1_ServiceInstance(in *servicecatalog.ServiceInstance, out *ServiceInstance, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_servicecatalog_ServiceInstanceSpec_To_v1alpha1_ServiceInstanceSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	if err := Convert_servicecatalog_ServiceInstanceStatus_To_v1alpha1_ServiceInstanceStatus(&in.Status, &out.Status, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_servicecatalog_ServiceInstance_To_v1alpha1_ServiceInstance is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceInstance_To_v1alpha1_ServiceInstance(in *servicecatalog.ServiceInstance, out *ServiceInstance, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceInstance_To_v1alpha1_ServiceInstance(in, out, s)
+}
+
+func autoConvert_v1alpha1_ServiceInstanceCondition_To_servicecatalog_ServiceInstanceCondition(in *ServiceInstanceCondition, out *servicecatalog.ServiceInstanceCondition, s conversion.Scope) error {
+	out.Type = servicecatalog.ServiceInstanceConditionType(in.Type)
+	out.Status = servicecatalog.ConditionStatus(in.Status)
+	out.LastTransitionTime = in.LastTransitionTime
+	out.Reason = in.Reason
+	out.Message = in.Message
+	return nil
+}
+
+// Convert_v1alpha1_ServiceInstanceCondition_To_servicecatalog_ServiceInstanceCondition is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceInstanceCondition_To_servicecatalog_ServiceInstanceCondition(in *ServiceInstanceCondition, out *servicecatalog.ServiceInstanceCondition, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceInstanceCondition_To_servicecatalog_ServiceInstanceCondition(in, out, s)
+}
+
+func autoConvert_servicecatalog_ServiceInstanceCondition_To_v1alpha1_ServiceInstanceCondition(in *servicecatalog.ServiceInstanceCondition, out *ServiceInstanceCondition, s conversion.Scope) error {
+	out.Type = ServiceInstanceConditionType(in.Type)
+	out.Status = ConditionStatus(in.Status)
+	out.LastTransitionTime = in.LastTransitionTime
+	out.Reason = in.Reason
+	out.Message = in.Message
+	return nil
+}
+
+// Convert_servicecatalog_ServiceInstanceCondition_To_v1alpha1_ServiceInstanceCondition is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceInstanceCondition_To_v1alpha1_ServiceInstanceCondition(in *servicecatalog.ServiceInstanceCondition, out *ServiceInstanceCondition, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceInstanceCondition_To_v1alpha1_ServiceInstanceCondition(in, out, s)
+}
+
+func autoConvert_v1alpha1_ServiceInstanceList_To_servicecatalog_ServiceInstanceList(in *ServiceInstanceList, out *servicecatalog.ServiceInstanceList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]servicecatalog.ServiceInstance)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_v1alpha1_ServiceInstanceList_To_servicecatalog_ServiceInstanceList is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceInstanceList_To_servicecatalog_ServiceInstanceList(in *ServiceInstanceList, out *servicecatalog.ServiceInstanceList, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceInstanceList_To_servicecatalog_ServiceInstanceList(in, out, s)
+}
+
+func autoConvert_servicecatalog_ServiceInstanceList_To_v1alpha1_ServiceInstanceList(in *servicecatalog.ServiceInstanceList, out *ServiceInstanceList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]ServiceInstance)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_servicecatalog_ServiceInstanceList_To_v1alpha1_ServiceInstanceList is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceInstanceList_To_v1alpha1_ServiceInstanceList(in *servicecatalog.ServiceInstanceList, out *ServiceInstanceList, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceInstanceList_To_v1alpha1_ServiceInstanceList(in, out, s)
+}
+
+func autoConvert_v1alpha1_ServiceInstancePropertiesState_To_servicecatalog_ServiceInstancePropertiesState(in *ServiceInstancePropertiesState, out *servicecatalog.ServiceInstancePropertiesState, s conversion.Scope) error {
+	out.ExternalClusterServicePlanName = in.ExternalClusterServicePlanName
+	out.Parameters = (*runtime.RawExtension)(unsafe.Pointer(in.Parameters))
+	out.ParametersChecksum = in.ParametersChecksum
+	out.UserInfo = (*servicecatalog.UserInfo)(unsafe.Pointer(in.UserInfo))
+	return nil
+}
+
+// Convert_v1alpha1_ServiceInstancePropertiesState_To_servicecatalog_ServiceInstancePropertiesState is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceInstancePropertiesState_To_servicecatalog_ServiceInstancePropertiesState(in *ServiceInstancePropertiesState, out *servicecatalog.ServiceInstancePropertiesState, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceInstancePropertiesState_To_servicecatalog_ServiceInstancePropertiesState(in, out, s)
+}
+
+func autoConvert_servicecatalog_ServiceInstancePropertiesState_To_v1alpha1_ServiceInstancePropertiesState(in *servicecatalog.ServiceInstancePropertiesState, out *ServiceInstancePropertiesState, s conversion.Scope) error {
+	out.ExternalClusterServicePlanName = in.ExternalClusterServicePlanName
+	out.Parameters = (*runtime.RawExtension)(unsafe.Pointer(in.Parameters))
+	out.ParametersChecksum = in.ParametersChecksum
+	out.UserInfo = (*UserInfo)(unsafe.Pointer(in.UserInfo))
+	return nil
+}
+
+// Convert_servicecatalog_ServiceInstancePropertiesState_To_v1alpha1_ServiceInstancePropertiesState is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceInstancePropertiesState_To_v1alpha1_ServiceInstancePropertiesState(in *servicecatalog.ServiceInstancePropertiesState, out *ServiceInstancePropertiesState, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceInstancePropertiesState_To_v1alpha1_ServiceInstancePropertiesState(in, out, s)
+}
+
+func autoConvert_v1alpha1_ServiceInstanceSpec_To_servicecatalog_ServiceInstanceSpec(in *ServiceInstanceSpec, out *servicecatalog.ServiceInstanceSpec, s conversion.Scope) error {
+	if err := Convert_v1alpha1_PlanReference_To_servicecatalog_PlanReference(&in.PlanReference, &out.PlanReference, s); err != nil {
+		return err
+	}
+	out.ClusterServiceClassRef = (*v1.ObjectReference)(unsafe.Pointer(in.ClusterServiceClassRef))
+	out.ClusterServicePlanRef = (*v1.ObjectReference)(unsafe.Pointer(in.ClusterServicePlanRef))
+	out.Parameters = (*runtime.RawExtension)(unsafe.Pointer(in.Parameters))
+	out.ParametersFrom = *(*[]servicecatalog.ParametersFromSource)(unsafe.Pointer(&in.ParametersFrom))
+	out.ExternalID = in.ExternalID
+	out.UserInfo = (*servicecatalog.UserInfo)(unsafe.Pointer(in.UserInfo))
+	out.UpdateRequests = in.UpdateRequests
+	return nil
+}
+
+// Convert_v1alpha1_ServiceInstanceSpec_To_servicecatalog_ServiceInstanceSpec is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceInstanceSpec_To_servicecatalog_ServiceInstanceSpec(in *ServiceInstanceSpec, out *servicecatalog.ServiceInstanceSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceInstanceSpec_To_servicecatalog_ServiceInstanceSpec(in, out, s)
+}
+
+func autoConvert_servicecatalog_ServiceInstanceSpec_To_v1alpha1_ServiceInstanceSpec(in *servicecatalog.ServiceInstanceSpec, out *ServiceInstanceSpec, s conversion.Scope) error {
+	if err := Convert_servicecatalog_PlanReference_To_v1alpha1_PlanReference(&in.PlanReference, &out.PlanReference, s); err != nil {
+		return err
+	}
+	out.ClusterServiceClassRef = (*v1.ObjectReference)(unsafe.Pointer(in.ClusterServiceClassRef))
+	out.ClusterServicePlanRef = (*v1.ObjectReference)(unsafe.Pointer(in.ClusterServicePlanRef))
+	out.Parameters = (*runtime.RawExtension)(unsafe.Pointer(in.Parameters))
+	out.ParametersFrom = *(*[]ParametersFromSource)(unsafe.Pointer(&in.ParametersFrom))
+	out.ExternalID = in.ExternalID
+	out.UserInfo = (*UserInfo)(unsafe.Pointer(in.UserInfo))
+	out.UpdateRequests = in.UpdateRequests
+	return nil
+}
+
+// Convert_servicecatalog_ServiceInstanceSpec_To_v1alpha1_ServiceInstanceSpec is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceInstanceSpec_To_v1alpha1_ServiceInstanceSpec(in *servicecatalog.ServiceInstanceSpec, out *ServiceInstanceSpec, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceInstanceSpec_To_v1alpha1_ServiceInstanceSpec(in, out, s)
+}
+
+func autoConvert_v1alpha1_ServiceInstanceStatus_To_servicecatalog_ServiceInstanceStatus(in *ServiceInstanceStatus, out *servicecatalog.ServiceInstanceStatus, s conversion.Scope) error {
+	out.Conditions = *(*[]servicecatalog.ServiceInstanceCondition)(unsafe.Pointer(&in.Conditions))
 	out.AsyncOpInProgress = in.AsyncOpInProgress
+	out.OrphanMitigationInProgress = in.OrphanMitigationInProgress
 	out.LastOperation = (*string)(unsafe.Pointer(in.LastOperation))
 	out.DashboardURL = (*string)(unsafe.Pointer(in.DashboardURL))
+	out.CurrentOperation = servicecatalog.ServiceInstanceOperation(in.CurrentOperation)
+	out.ReconciledGeneration = in.ReconciledGeneration
+	out.OperationStartTime = (*meta_v1.Time)(unsafe.Pointer(in.OperationStartTime))
+	out.InProgressProperties = (*servicecatalog.ServiceInstancePropertiesState)(unsafe.Pointer(in.InProgressProperties))
+	out.ExternalProperties = (*servicecatalog.ServiceInstancePropertiesState)(unsafe.Pointer(in.ExternalProperties))
 	return nil
 }
 
-func Convert_v1alpha1_InstanceStatus_To_servicecatalog_InstanceStatus(in *InstanceStatus, out *servicecatalog.InstanceStatus, s conversion.Scope) error {
-	return autoConvert_v1alpha1_InstanceStatus_To_servicecatalog_InstanceStatus(in, out, s)
+// Convert_v1alpha1_ServiceInstanceStatus_To_servicecatalog_ServiceInstanceStatus is an autogenerated conversion function.
+func Convert_v1alpha1_ServiceInstanceStatus_To_servicecatalog_ServiceInstanceStatus(in *ServiceInstanceStatus, out *servicecatalog.ServiceInstanceStatus, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ServiceInstanceStatus_To_servicecatalog_ServiceInstanceStatus(in, out, s)
 }
 
-func autoConvert_servicecatalog_InstanceStatus_To_v1alpha1_InstanceStatus(in *servicecatalog.InstanceStatus, out *InstanceStatus, s conversion.Scope) error {
-	out.Conditions = *(*[]InstanceCondition)(unsafe.Pointer(&in.Conditions))
+func autoConvert_servicecatalog_ServiceInstanceStatus_To_v1alpha1_ServiceInstanceStatus(in *servicecatalog.ServiceInstanceStatus, out *ServiceInstanceStatus, s conversion.Scope) error {
+	out.Conditions = *(*[]ServiceInstanceCondition)(unsafe.Pointer(&in.Conditions))
 	out.AsyncOpInProgress = in.AsyncOpInProgress
+	out.OrphanMitigationInProgress = in.OrphanMitigationInProgress
 	out.LastOperation = (*string)(unsafe.Pointer(in.LastOperation))
 	out.DashboardURL = (*string)(unsafe.Pointer(in.DashboardURL))
+	out.CurrentOperation = ServiceInstanceOperation(in.CurrentOperation)
+	out.ReconciledGeneration = in.ReconciledGeneration
+	out.OperationStartTime = (*meta_v1.Time)(unsafe.Pointer(in.OperationStartTime))
+	out.InProgressProperties = (*ServiceInstancePropertiesState)(unsafe.Pointer(in.InProgressProperties))
+	out.ExternalProperties = (*ServiceInstancePropertiesState)(unsafe.Pointer(in.ExternalProperties))
 	return nil
 }
 
-func Convert_servicecatalog_InstanceStatus_To_v1alpha1_InstanceStatus(in *servicecatalog.InstanceStatus, out *InstanceStatus, s conversion.Scope) error {
-	return autoConvert_servicecatalog_InstanceStatus_To_v1alpha1_InstanceStatus(in, out, s)
+// Convert_servicecatalog_ServiceInstanceStatus_To_v1alpha1_ServiceInstanceStatus is an autogenerated conversion function.
+func Convert_servicecatalog_ServiceInstanceStatus_To_v1alpha1_ServiceInstanceStatus(in *servicecatalog.ServiceInstanceStatus, out *ServiceInstanceStatus, s conversion.Scope) error {
+	return autoConvert_servicecatalog_ServiceInstanceStatus_To_v1alpha1_ServiceInstanceStatus(in, out, s)
 }
 
-func autoConvert_v1alpha1_ServiceClass_To_servicecatalog_ServiceClass(in *ServiceClass, out *servicecatalog.ServiceClass, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	out.BrokerName = in.BrokerName
-	out.Bindable = in.Bindable
-	if in.Plans != nil {
-		in, out := &in.Plans, &out.Plans
-		*out = make([]servicecatalog.ServicePlan, len(*in))
-		for i := range *in {
-			if err := Convert_v1alpha1_ServicePlan_To_servicecatalog_ServicePlan(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
-			}
-		}
-	} else {
-		out.Plans = nil
-	}
-	out.PlanUpdatable = in.PlanUpdatable
-	out.OSBGUID = in.OSBGUID
-	out.OSBTags = *(*[]string)(unsafe.Pointer(&in.OSBTags))
-	out.OSBRequires = *(*[]string)(unsafe.Pointer(&in.OSBRequires))
-	out.OSBMaxDBPerNode = (*string)(unsafe.Pointer(in.OSBMaxDBPerNode))
-	out.OSBDashboardOAuth2ClientID = (*string)(unsafe.Pointer(in.OSBDashboardOAuth2ClientID))
-	out.OSBDashboardSecret = (*string)(unsafe.Pointer(in.OSBDashboardSecret))
-	out.OSBDashboardRedirectURI = (*string)(unsafe.Pointer(in.OSBDashboardRedirectURI))
-	out.Description = (*string)(unsafe.Pointer(in.Description))
-	out.OSBMetadata = (*runtime.RawExtension)(unsafe.Pointer(in.OSBMetadata))
+func autoConvert_v1alpha1_UserInfo_To_servicecatalog_UserInfo(in *UserInfo, out *servicecatalog.UserInfo, s conversion.Scope) error {
+	out.Username = in.Username
+	out.UID = in.UID
+	out.Groups = *(*[]string)(unsafe.Pointer(&in.Groups))
+	out.Extra = *(*map[string]servicecatalog.ExtraValue)(unsafe.Pointer(&in.Extra))
 	return nil
 }
 
-func Convert_v1alpha1_ServiceClass_To_servicecatalog_ServiceClass(in *ServiceClass, out *servicecatalog.ServiceClass, s conversion.Scope) error {
-	return autoConvert_v1alpha1_ServiceClass_To_servicecatalog_ServiceClass(in, out, s)
+// Convert_v1alpha1_UserInfo_To_servicecatalog_UserInfo is an autogenerated conversion function.
+func Convert_v1alpha1_UserInfo_To_servicecatalog_UserInfo(in *UserInfo, out *servicecatalog.UserInfo, s conversion.Scope) error {
+	return autoConvert_v1alpha1_UserInfo_To_servicecatalog_UserInfo(in, out, s)
 }
 
-func autoConvert_servicecatalog_ServiceClass_To_v1alpha1_ServiceClass(in *servicecatalog.ServiceClass, out *ServiceClass, s conversion.Scope) error {
-	out.ObjectMeta = in.ObjectMeta
-	out.BrokerName = in.BrokerName
-	out.Bindable = in.Bindable
-	if in.Plans != nil {
-		in, out := &in.Plans, &out.Plans
-		*out = make([]ServicePlan, len(*in))
-		for i := range *in {
-			if err := Convert_servicecatalog_ServicePlan_To_v1alpha1_ServicePlan(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
-			}
-		}
-	} else {
-		out.Plans = nil
-	}
-	out.PlanUpdatable = in.PlanUpdatable
-	out.OSBGUID = in.OSBGUID
-	out.OSBTags = *(*[]string)(unsafe.Pointer(&in.OSBTags))
-	out.OSBRequires = *(*[]string)(unsafe.Pointer(&in.OSBRequires))
-	out.OSBMaxDBPerNode = (*string)(unsafe.Pointer(in.OSBMaxDBPerNode))
-	out.OSBDashboardOAuth2ClientID = (*string)(unsafe.Pointer(in.OSBDashboardOAuth2ClientID))
-	out.OSBDashboardSecret = (*string)(unsafe.Pointer(in.OSBDashboardSecret))
-	out.OSBDashboardRedirectURI = (*string)(unsafe.Pointer(in.OSBDashboardRedirectURI))
-	out.Description = (*string)(unsafe.Pointer(in.Description))
-	out.OSBMetadata = (*runtime.RawExtension)(unsafe.Pointer(in.OSBMetadata))
+func autoConvert_servicecatalog_UserInfo_To_v1alpha1_UserInfo(in *servicecatalog.UserInfo, out *UserInfo, s conversion.Scope) error {
+	out.Username = in.Username
+	out.UID = in.UID
+	out.Groups = *(*[]string)(unsafe.Pointer(&in.Groups))
+	out.Extra = *(*map[string]ExtraValue)(unsafe.Pointer(&in.Extra))
 	return nil
 }
 
-func Convert_servicecatalog_ServiceClass_To_v1alpha1_ServiceClass(in *servicecatalog.ServiceClass, out *ServiceClass, s conversion.Scope) error {
-	return autoConvert_servicecatalog_ServiceClass_To_v1alpha1_ServiceClass(in, out, s)
-}
-
-func autoConvert_v1alpha1_ServiceClassList_To_servicecatalog_ServiceClassList(in *ServiceClassList, out *servicecatalog.ServiceClassList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
-		in, out := &in.Items, &out.Items
-		*out = make([]servicecatalog.ServiceClass, len(*in))
-		for i := range *in {
-			if err := Convert_v1alpha1_ServiceClass_To_servicecatalog_ServiceClass(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
-			}
-		}
-	} else {
-		out.Items = nil
-	}
-	return nil
-}
-
-func Convert_v1alpha1_ServiceClassList_To_servicecatalog_ServiceClassList(in *ServiceClassList, out *servicecatalog.ServiceClassList, s conversion.Scope) error {
-	return autoConvert_v1alpha1_ServiceClassList_To_servicecatalog_ServiceClassList(in, out, s)
-}
-
-func autoConvert_servicecatalog_ServiceClassList_To_v1alpha1_ServiceClassList(in *servicecatalog.ServiceClassList, out *ServiceClassList, s conversion.Scope) error {
-	out.ListMeta = in.ListMeta
-	if in.Items != nil {
-		in, out := &in.Items, &out.Items
-		*out = make([]ServiceClass, len(*in))
-		for i := range *in {
-			if err := Convert_servicecatalog_ServiceClass_To_v1alpha1_ServiceClass(&(*in)[i], &(*out)[i], s); err != nil {
-				return err
-			}
-		}
-	} else {
-		out.Items = nil
-	}
-	return nil
-}
-
-func Convert_servicecatalog_ServiceClassList_To_v1alpha1_ServiceClassList(in *servicecatalog.ServiceClassList, out *ServiceClassList, s conversion.Scope) error {
-	return autoConvert_servicecatalog_ServiceClassList_To_v1alpha1_ServiceClassList(in, out, s)
-}
-
-func autoConvert_v1alpha1_ServicePlan_To_servicecatalog_ServicePlan(in *ServicePlan, out *servicecatalog.ServicePlan, s conversion.Scope) error {
-	out.Name = in.Name
-	out.Description = (*string)(unsafe.Pointer(in.Description))
-	out.OSBGUID = in.OSBGUID
-	out.OSBFree = in.OSBFree
-	out.OSBMetadata = (*runtime.RawExtension)(unsafe.Pointer(in.OSBMetadata))
-	return nil
-}
-
-func Convert_v1alpha1_ServicePlan_To_servicecatalog_ServicePlan(in *ServicePlan, out *servicecatalog.ServicePlan, s conversion.Scope) error {
-	return autoConvert_v1alpha1_ServicePlan_To_servicecatalog_ServicePlan(in, out, s)
-}
-
-func autoConvert_servicecatalog_ServicePlan_To_v1alpha1_ServicePlan(in *servicecatalog.ServicePlan, out *ServicePlan, s conversion.Scope) error {
-	out.Name = in.Name
-	out.OSBGUID = in.OSBGUID
-	out.OSBFree = in.OSBFree
-	out.Description = (*string)(unsafe.Pointer(in.Description))
-	out.OSBMetadata = (*runtime.RawExtension)(unsafe.Pointer(in.OSBMetadata))
-	return nil
-}
-
-func Convert_servicecatalog_ServicePlan_To_v1alpha1_ServicePlan(in *servicecatalog.ServicePlan, out *ServicePlan, s conversion.Scope) error {
-	return autoConvert_servicecatalog_ServicePlan_To_v1alpha1_ServicePlan(in, out, s)
+// Convert_servicecatalog_UserInfo_To_v1alpha1_UserInfo is an autogenerated conversion function.
+func Convert_servicecatalog_UserInfo_To_v1alpha1_UserInfo(in *servicecatalog.UserInfo, out *UserInfo, s conversion.Scope) error {
+	return autoConvert_servicecatalog_UserInfo_To_v1alpha1_UserInfo(in, out, s)
 }

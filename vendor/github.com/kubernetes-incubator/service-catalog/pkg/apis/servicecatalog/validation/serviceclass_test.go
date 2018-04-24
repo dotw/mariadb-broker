@@ -24,177 +24,108 @@ import (
 	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
 )
 
-func TestValidateServiceClass(t *testing.T) {
+func validClusterServiceClass() *servicecatalog.ClusterServiceClass {
+	return &servicecatalog.ClusterServiceClass{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-serviceclass",
+		},
+		Spec: servicecatalog.ClusterServiceClassSpec{
+			Bindable:                 true,
+			ClusterServiceBrokerName: "test-broker",
+			ExternalName:             "test-serviceclass",
+			ExternalID:               "1234-4354a-49b",
+			Description:              "service description",
+		},
+	}
+}
+
+func TestValidateClusterServiceClass(t *testing.T) {
 	cases := []struct {
 		name         string
-		serviceClass *servicecatalog.ServiceClass
+		serviceClass *servicecatalog.ClusterServiceClass
 		valid        bool
 	}{
 		{
-			name: "valid serviceClass",
-			serviceClass: &servicecatalog.ServiceClass{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-serviceclass",
-				},
-				Bindable:   true,
-				BrokerName: "test-broker",
-				OSBGUID:    "1234-4354a-49b",
-				Plans: []servicecatalog.ServicePlan{
-					{
-						Name:    "test-plan",
-						OSBGUID: "40d-0983-1b89",
-					},
-				},
-			},
-			valid: true,
-		},
-		{
-			name: "valid serviceClass - plan with underscore in name",
-			serviceClass: &servicecatalog.ServiceClass{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-serviceclass",
-				},
-				Bindable:   true,
-				BrokerName: "test-broker",
-				OSBGUID:    "1234-4354a-49b",
-				Plans: []servicecatalog.ServicePlan{
-					{
-						Name:    "test_plan",
-						OSBGUID: "40d-0983-1b89",
-					},
-				},
-			},
-			valid: true,
+			name:         "valid serviceClass",
+			serviceClass: validClusterServiceClass(),
+			valid:        true,
 		},
 		{
 			name: "valid serviceClass - uppercase in GUID",
-			serviceClass: &servicecatalog.ServiceClass{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-serviceclass",
-				},
-				Bindable:   true,
-				BrokerName: "test-broker",
-				OSBGUID:    "1234-4354a-49b",
-				Plans: []servicecatalog.ServicePlan{
-					{
-						Name:    "test-plan",
-						OSBGUID: "40D-0983-1b89",
-					},
-				},
-			},
+			serviceClass: func() *servicecatalog.ClusterServiceClass {
+				s := validClusterServiceClass()
+				s.Spec.ExternalID = "40D-0983-1b89"
+				return s
+			}(),
+			valid: true,
+		},
+		{
+			name: "valid serviceClass - period in GUID",
+			serviceClass: func() *servicecatalog.ClusterServiceClass {
+				s := validClusterServiceClass()
+				s.Spec.ExternalID = "4315f5e1-0139-4ecf-9706-9df0aff33e5a.plan-name"
+				return s
+			}(),
 			valid: true,
 		},
 		{
 			name: "invalid serviceClass - has namespace",
-			serviceClass: &servicecatalog.ServiceClass{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-serviceclass",
-					Namespace: "test-ns",
-				},
-				Bindable:   true,
-				BrokerName: "test-broker",
-				OSBGUID:    "1234-4354a-49b",
-				Plans: []servicecatalog.ServicePlan{
-					{
-						Name:    "test-plan",
-						OSBGUID: "40d-0983-1b89",
-					},
-				},
-			},
+			serviceClass: func() *servicecatalog.ClusterServiceClass {
+				s := validClusterServiceClass()
+				s.Namespace = "test-ns"
+				return s
+			}(),
 			valid: false,
 		},
 		{
 			name: "invalid serviceClass - missing guid",
-			serviceClass: &servicecatalog.ServiceClass{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-serviceclass",
-				},
-				Bindable:   true,
-				BrokerName: "test-broker",
-				Plans: []servicecatalog.ServicePlan{
-					{
-						Name:    "test-plan",
-						OSBGUID: "40d-0983-1b89",
-					},
-				},
-			},
+			serviceClass: func() *servicecatalog.ClusterServiceClass {
+				s := validClusterServiceClass()
+				s.Spec.ExternalID = ""
+				return s
+			}(),
 			valid: false,
 		},
 		{
 			name: "invalid serviceClass - invalid guid",
-			serviceClass: &servicecatalog.ServiceClass{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-serviceclass",
-				},
-				Bindable:   true,
-				BrokerName: "test-broker",
-				OSBGUID:    "1234-4354a\\%-49b",
-				Plans: []servicecatalog.ServicePlan{
-					{
-						Name:    "test-plan",
-						OSBGUID: "40d-0983-1b89",
-					},
-				},
-			},
+			serviceClass: func() *servicecatalog.ClusterServiceClass {
+				s := validClusterServiceClass()
+				s.Spec.ExternalID = "1234-4354a\\%-49b"
+				return s
+			}(),
 			valid: false,
 		},
 		{
-			name: "invalid serviceClass - invalid plan name",
-			serviceClass: &servicecatalog.ServiceClass{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-serviceclass",
-				},
-				Bindable:   true,
-				BrokerName: "test-broker",
-				OSBGUID:    "1234-4354a-49b",
-				Plans: []servicecatalog.ServicePlan{
-					{
-						Name:    "test-plan.oops",
-						OSBGUID: "40d-0983-1b89",
-					},
-				},
-			},
+			name: "invalid serviceClass - missing description",
+			serviceClass: func() *servicecatalog.ClusterServiceClass {
+				s := validClusterServiceClass()
+				s.Spec.Description = ""
+				return s
+			}(),
 			valid: false,
 		},
 		{
-			name: "invalid serviceClass - invalid plan guid",
-			serviceClass: &servicecatalog.ServiceClass{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-serviceclass",
-				},
-				Bindable:   true,
-				BrokerName: "test-broker",
-				OSBGUID:    "1234-4354a-49b",
-				Plans: []servicecatalog.ServicePlan{
-					{
-						Name:    "test-plan",
-						OSBGUID: "40d-0983-1b89-★",
-					},
-				},
-			},
+			name: "invalid serviceClass - invalid externalName",
+			serviceClass: func() *servicecatalog.ClusterServiceClass {
+				s := validClusterServiceClass()
+				s.Spec.ExternalName = "****"
+				return s
+			}(),
 			valid: false,
 		},
 		{
-			name: "invalid serviceClass - missing plan guid",
-			serviceClass: &servicecatalog.ServiceClass{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-serviceclass",
-				},
-				Bindable:   true,
-				BrokerName: "test-broker",
-				OSBGUID:    "1234-4354a-49b",
-				Plans: []servicecatalog.ServicePlan{
-					{
-						Name: "test-plan",
-					},
-				},
-			},
+			name: "invalid serviceClass - missing externalName",
+			serviceClass: func() *servicecatalog.ClusterServiceClass {
+				s := validClusterServiceClass()
+				s.Spec.ExternalName = ""
+				return s
+			}(),
 			valid: false,
 		},
 	}
 
 	for _, tc := range cases {
-		errs := ValidateServiceClass(tc.serviceClass)
+		errs := ValidateClusterServiceClass(tc.serviceClass)
 		if len(errs) != 0 && tc.valid {
 			t.Errorf("%v: unexpected error: %v", tc.name, errs)
 			continue
